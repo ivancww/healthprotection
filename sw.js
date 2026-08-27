@@ -1,4 +1,4 @@
-const CACHE_NAME = 'health-planner-v1.0.0';
+const CACHE_NAME = 'health-planner-v1.0.1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,7 +7,6 @@ const ASSETS_TO_CACHE = [
   './icon-512.png'
 ];
 
-// 安裝 Service Worker 並預先緩存核心靜態資源
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,13 +15,13 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 啟動並清理舊版本緩存
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('清理舊版本緩存:', key);
             return caches.delete(key);
           }
         })
@@ -31,7 +30,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 攔截網絡請求：優先讀取緩存，離線時亦可順暢運行
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
@@ -39,7 +37,6 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       return fetch(event.request).then((networkResponse) => {
-        // 僅緩存同源的有效 GET 請求
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
           return networkResponse;
         }
@@ -49,7 +46,6 @@ self.addEventListener('fetch', (event) => {
         });
         return networkResponse;
       }).catch(() => {
-        // 離線且無緩存時的防禦回退
         return caches.match('./index.html');
       });
     })
