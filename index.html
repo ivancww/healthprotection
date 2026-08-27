@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner</title>
+  <title>Health Protection Planner v1.0.1</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
@@ -64,6 +64,16 @@
       font-weight: 700;
       letter-spacing: 0.5px;
       color: var(--text-sub);
+    }
+
+    .version-tag {
+      font-size: 11px;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 800;
+      margin-left: 6px;
     }
 
     .progress-track {
@@ -300,6 +310,7 @@
       font-size: 15px;
       cursor: pointer;
       line-height: 1.5;
+      transition: all 0.2s ease;
     }
 
     .grid-btn * { pointer-events: none; }
@@ -307,6 +318,7 @@
       background: var(--primary-light);
       border-color: var(--primary);
       border-style: solid;
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     .btn-group {
@@ -455,7 +467,10 @@
 
 <div class="container">
   <div class="header-bar">
-    <span>HEALTH PROTECTION PLANNER</span>
+    <div>
+      <span>HEALTH PROTECTION PLANNER</span>
+      <span class="version-tag" id="appVersion">v1.0.1</span>
+    </div>
     <span id="pageCounter">01 / 05</span>
   </div>
 
@@ -671,10 +686,10 @@
     <p class="subtitle">可選擇多於一項：</p>
 
     <div class="grid-2x2">
-      <button type="button" class="grid-btn multi-choice" data-loss="家庭現有生活質素">🏠<br>家庭生活質素</button>
-      <button type="button" class="grid-btn multi-choice" data-loss="辛苦累積的積蓄與資產">💰<br>積蓄與資產</button>
-      <button type="button" class="grid-btn multi-choice" data-loss="子女的教育基金及成長安排">🎓<br>子女教育規劃</button>
-      <button type="button" class="grid-btn multi-choice" data-loss="既定的平穩退休生活">🌅<br>退休儲備進度</button>
+      <button type="button" class="grid-btn" data-loss="家庭現有生活質素">🏠<br>家庭生活質素</button>
+      <button type="button" class="grid-btn" data-loss="辛苦累積的積蓄與資產">💰<br>積蓄與資產</button>
+      <button type="button" class="grid-btn" data-loss="子女的教育基金及成長安排">🎓<br>子女教育規劃</button>
+      <button type="button" class="grid-btn" data-loss="既定的平穩退休生活">🌅<br>退休儲備進度</button>
     </div>
 
     <div class="btn-group">
@@ -688,14 +703,10 @@
     <span class="tag">05｜專屬方案方向</span>
     <h1>根據你的重視與關注，得出以下總結及缺口</h1>
 
-    <!-- 頂部分開的兩個獨立提示框 -->
     <div id="thoughtBox"></div>
     <div id="frontlineBox"></div>
-
-    <!-- 中間總結與防線檢視框 -->
     <div class="section-block" id="summaryBlock" style="line-height: 1.8; font-size: 14px;"></div>
 
-    <!-- 底部解決方案 -->
     <div class="section-block" style="background:#ffffff; border:1.5px solid var(--border);">
       <h3 style="font-size:16px; color:var(--primary); margin-bottom:8px;">💡 解決方案</h3>
       <p id="solutionDesc" style="font-size:13px; color:var(--text-sub); line-height:1.6; margin-bottom:14px;"></p>
@@ -711,6 +722,8 @@
 
 <script>
   (function() {
+    const APP_VERSION = 'v1.0.1';
+    
     var state = {
       step1Focus: null,
       step1RawText: '',
@@ -965,15 +978,15 @@
         block.innerHTML = summaryHtml;
       }
 
-      // 4. 動態生成帶有前設參數的 App 連結
+      // 4. 動態跳轉按鈕
       var medUrl = 'https://ivancww.github.io/medicalclaims?cost=' + state.medCost +
                    '&hasCompany=' + state.hasCompanyMed +
                    '&companyLimit=' + state.companyLimit +
                    '&companyRate=' + state.companyRate +
-                   '&hasPersonal=' + state.hasPersonalMed;[span_0](start_span)[span_0](end_span)
+                   '&hasPersonal=' + state.hasPersonalMed;
 
       var ciUrl = 'https://ivancww.github.io/CIApp?expense=' + state.ciMonthly +
-                  '&existing=' + state.ciExisting;[span_1](start_span)[span_1](end_span)
+                  '&existing=' + state.ciExisting;
 
       var btnMedical = `
         <a href="${medUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn med">
@@ -1008,10 +1021,23 @@
       }
     }
 
+    // 全域點擊代理（修復第 4 步多選點擊無反應問題）
     document.addEventListener('click', function(e) {
+      // 1. 第 4 步多選按鈕
+      var gridBtn = e.target.closest('#page4 .grid-btn');
+      if (gridBtn) {
+        gridBtn.classList.toggle('selected');
+        state.losses = [];
+        document.querySelectorAll('#page4 .grid-btn.selected').forEach(function(btn) {
+          state.losses.push(btn.dataset.loss);
+        });
+        return;
+      }
+
       var target = e.target.closest('button');
       if (!target) return;
 
+      // 2. 第 1 步單選
       if (target.closest('#page1') && target.dataset.step1) {
         document.querySelectorAll('#page1 .choice-btn').forEach(function(b) { b.classList.remove('selected'); });
         target.classList.add('selected');
@@ -1020,6 +1046,7 @@
         return;
       }
 
+      // 3. 第 2 步單選
       if (target.closest('#page2') && target.dataset.step2) {
         document.querySelectorAll('#page2 .choice-btn').forEach(function(b) { b.classList.remove('selected'); });
         target.classList.add('selected');
@@ -1028,16 +1055,7 @@
         return;
       }
 
-      if (target.classList.contains('multi-choice')) {
-        target.classList.toggle('selected');
-        var selectedBtns = document.querySelectorAll('.multi-choice.selected');
-        state.losses = [];
-        selectedBtns.forEach(function(btn) {
-          state.losses.push(btn.dataset.loss);
-        });
-        return;
-      }
-
+      // 4. 導航按鈕處理
       var nav = target.dataset.nav;
       if (nav) {
         if (nav === 'next-1') {
@@ -1062,8 +1080,8 @@
         } else if (nav === 'to-4') {
           showStep(4);
         } else if (nav === 'next-4') {
-          if (state.losses.length === 0) {
-            alert('請至少選擇一項你最不想失去／中斷的項目');
+          if (!state.losses || state.losses.length === 0) {
+            alert('請至少點選一項你最不想失去／中斷的項目');
             return;
           }
           updateSummary();
@@ -1100,12 +1118,26 @@
   })();
 </script>
 
+<!-- PWA Service Worker 註冊與自動更新管理 -->
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then((reg) => console.log('PWA Service Worker 已就緒:', reg.scope))
-        .catch((err) => console.error('PWA 註冊失敗:', err));
+        .then((reg) => {
+          console.log('HealthPlan PWA Service Worker 註冊成功:', reg.scope);
+          
+          // 監聽是否有新版本發佈
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('檢測到新版本發佈，正在自動更新...');
+                window.location.reload();
+              }
+            });
+          });
+        })
+        .catch((err) => console.error('Service Worker 註冊失敗:', err));
     });
   }
 </script>
