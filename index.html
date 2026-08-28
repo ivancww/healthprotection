@@ -1,489 +1,1178 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-<title>健康守護規劃系統 v1.0.0(Health Protection Planner)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Health Protection Planner v1.1.0</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HealthPlan">
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --accent: #d97706;
+      --accent-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning-bg: #fef3c7;
+      --warning-border: #fcd34d;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --border: #cbd5e1;
+      --pink-border: #f8d7da;
+      --radius: 16px;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Microsoft JhengHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+    }
+    .version-tag {
+      font-size: 11px;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+    .role-badge {
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .progress-track {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .progress-step {
+      height: 6px;
+      flex: 1;
+      background: var(--border);
+      border-radius: 999px;
+      transition: background 0.3s ease;
+    }
+    .progress-step.active {
+      background: var(--primary);
+    }
+    .card {
+      display: none;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    }
+    .card.active {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .role-card {
+      border: 2px dashed var(--pink-border);
+      border-radius: 14px;
+      padding: 20px 14px;
+      background: #ffffff;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .role-card:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .role-card.selected {
+      border-color: var(--primary);
+      border-style: solid;
+      background: var(--primary-light);
+      box-shadow: 0 0 0 1.5px var(--primary);
+    }
+    .role-emoji { font-size: 38px; margin-bottom: 8px; }
+    .role-title { font-size: 17px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+    .role-subtitle { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+    .role-desc { font-size: 11.5px; color: var(--text-sub); line-height: 1.4; }
 
-<style>
-  :root {
-    --primary: #1e3a8a; --primary-light: #eff6ff; --accent: #d97706; --accent-light: #fffbeb;
-    --danger: #dc2626; --danger-light: #fef2f2; --warning-bg: #fef3c7; --border: #cbd5e1;
-    --pink-border: #f8d7da; --radius: 14px; --success: #059669;
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang HK", sans-serif; background-color: #eef2f5; color: #333; margin: 0; padding: 15px; }
-  .app-shell { max-width: 840px; margin: 0 auto; }
-  
-  .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: #64748b; }
-  .v-badge { font-size: 11px; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 10px; }
-  .role-indicator { font-size: 11.5px; font-weight: 800; padding: 3px 10px; border-radius: 12px; background: #e0e7ff; color: #3730a3; }
+    .dual-frontline-highlight {
+      background: var(--danger-light);
+      border: 1.5px solid #fecaca;
+      border-left: 4px solid var(--danger);
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13.5px;
+      color: var(--danger);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+    .option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .choice-btn {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+      width: 100%;
+      padding: 16px 18px;
+      background: var(--card-bg);
+      border: 2px dashed var(--pink-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .choice-btn * { pointer-events: none; }
+    .choice-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .choice-btn.selected {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      border-style: solid;
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+    .choice-btn .title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .choice-btn .desc {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
 
-  .stage-card { background: #fff; border-radius: var(--radius); padding: 24px 20px; box-shadow: 0 6px 25px rgba(0,0,0,0.06); display: none; margin-bottom: 20px; }
-  .stage-card.active { display: block; animation: fadeIn 0.25s ease-out; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .stage-tag { display: inline-block; font-size: 12px; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 8px; margin-bottom: 12px; }
-  .stage-title { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1.4; margin: 0 0 10px 0; }
-  .stage-desc { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 18px; }
+    /* 03 勾選形式防線表 */
+    .defense-check-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+      transition: 0.2s;
+    }
+    .defense-check-row.checked {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .defense-left-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--text-main);
+      cursor: pointer;
+      flex: 1;
+    }
+    .defense-left-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .defense-status-select {
+      width: 160px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+    }
 
-  /* 主頁選擇角色卡片 */
-  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
-  @media (max-width: 600px) { .role-grid { grid-template-columns: 1fr; } }
-  .role-card { border: 2.5px solid var(--border); border-radius: 14px; padding: 20px 16px; background: #fff; text-align: center; cursor: pointer; transition: 0.2s; }
-  .role-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-  .role-card.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary); }
-  .role-emoji { font-size: 40px; margin-bottom: 8px; }
-  .role-title { font-size: 18px; font-weight: 900; color: #1e293b; margin-bottom: 4px; }
-  .role-subtitle { font-size: 13.5px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
-  .role-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+    .section-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 16px;
+    }
+    .section-block h2 {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .defense-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .defense-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 2px dashed var(--pink-border);
+      background: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+    }
+    .stat-display {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .stat-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 10px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    .stat-value {
+      font-size: 17px;
+      font-weight: 800;
+      margin-top: 4px;
+      color: var(--text-main);
+    }
+    .stat-value.highlight { color: var(--danger); }
+    
+    .yellow-red-warning {
+      background: var(--warning-bg);
+      border: 1.5px solid var(--warning-border);
+      color: #92400e;
+      font-size: 13.5px;
+      font-weight: 700;
+      line-height: 1.5;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-top: 14px;
+    }
 
-  /* 選擇項按鈕網格 */
-  .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-  @media (max-width: 600px) { .grid-2col { grid-template-columns: 1fr; } }
-  .select-card-btn { padding: 16px 14px; border-radius: 12px; border: 2px dashed var(--pink-border); background: #fff; text-align: left; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 700; color: #334155; line-height: 1.5; }
-  .select-card-btn:hover { border-color: var(--primary); background: #f8fafc; }
-  .select-card-btn.selected { border-color: var(--primary); border-style: solid; background: var(--primary-light); color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
-
-  /* 03 防線狀態清單 */
-  .defense-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: #fff; transition: 0.2s; }
-  .defense-row.checked { border-color: var(--primary); background: var(--primary-light); }
-  .defense-left { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 14.5px; color: #1e293b; flex: 1; }
-  .defense-left input[type="checkbox"] { width: 19px; height: 19px; cursor: pointer; }
-  .defense-status-select { width: 150px; padding: 6px 8px; font-size: 12.5px; font-weight: 700; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; background: #fff; }
-
-  /* 04 分流大卡片 */
-  .flow-action-card { border: 2px solid var(--border); border-radius: 12px; padding: 18px; background: #fff; cursor: pointer; transition: 0.2s; margin-bottom: 12px; }
-  .flow-action-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-  .flow-action-card.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 1.5px var(--primary); }
-
-  .stat-grid-box { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 10px; padding: 16px; margin: 15px 0; }
-  .yellow-alert-box { background: #fffbeb; border: 1.5px solid #fde68a; border-left: 5px solid #d97706; border-radius: 8px; padding: 14px; margin-top: 14px; font-size: 13.5px; line-height: 1.6; color: #92400e; font-weight: 700; }
-  .red-alert-box { background: #fef2f2; border: 1.5px solid #fca5a5; border-left: 5px solid #dc2626; border-radius: 8px; padding: 14px; margin-top: 14px; font-size: 13.5px; line-height: 1.6; color: #991b1b; font-weight: 700; }
-
-  .nav-btn-group { display: flex; gap: 10px; margin-top: 22px; }
-  .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; flex: 1; text-align: center; }
-  .btn-secondary { background: #f1f5f9; border: 1px solid var(--border); color: #333; padding: 14px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
-</style>
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .grid-btn {
+      padding: 18px;
+      text-align: center;
+      border-radius: 12px;
+      border: 2px dashed var(--pink-border);
+      background: var(--card-bg);
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      line-height: 1.5;
+      transition: all 0.2s ease;
+    }
+    .grid-btn * { pointer-events: none; }
+    .grid-btn.selected {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      border-style: solid;
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .btn {
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #0f172a;
+      color: #ffffff;
+      flex: 1;
+    }
+    .btn-secondary {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+    .solution-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .solution-btn {
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: left;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: transform 0.1s ease;
+    }
+    .solution-btn:active {
+      transform: scale(0.98);
+    }
+    .solution-btn img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .solution-btn-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .solution-btn-text .app-name {
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .solution-btn-text .app-action {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+    .solution-btn.med {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1e40af;
+    }
+    .solution-btn.ci {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+    .thought-card {
+      background: var(--warning-bg);
+      border: 1.5px solid var(--warning-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #78350f;
+    }
+    .frontline-card-red {
+      background: var(--danger-light);
+      border: 1.5px solid #fecaca;
+      border-left: 4px solid var(--danger);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--danger);
+      font-weight: 600;
+    }
+    .med-sub-notice {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--danger);
+      margin-left: 6px;
+    }
+    .conflict-alert {
+      background: #ffffff;
+      border: 1.5px dashed var(--danger);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--danger);
+      line-height: 1.6;
+    }
+    @media (max-width: 520px) {
+      .input-grid, .stat-display, .grid-2x2, .solution-group, .role-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<div class="app-shell">
+<div class="container">
   <div class="header-bar">
     <div>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="v-badge">v3.8.0</span>
+      <span class="version-tag" id="appVersion">v1.1.0</span>
     </div>
-    <div class="role-indicator" id="topRoleBadge">👨‍👩‍👧 成人模式</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
+      <span id="pageCounter">00 / 05</span>
+    </div>
+  </div>
+  
+  <div class="progress-track" id="mainProgressTrack">
+    <div class="progress-step active" id="pstep0"></div>
+    <div class="progress-step" id="pstep1"></div>
+    <div class="progress-step" id="pstep2"></div>
+    <div class="progress-step" id="pstep3"></div>
+    <div class="progress-step" id="pstep4"></div>
+    <div class="progress-step" id="pstep5"></div>
   </div>
 
-  <!-- 主頁：選擇守護角色入口 -->
-  <div class="stage-card active" id="stage-hp-0">
-    <span class="stage-tag">健康守護 ｜ 入口</span>
-    <h2 class="stage-title">今日，我哋想守護邊一位？</h2>
-    <p class="stage-desc">請選擇本次諮詢規劃的主體對象，系統將自動調整專屬的防線問題與情境：</p>
-
+  <!-- STEP 0: 主頁選擇守護對象 -->
+  <section class="card active" id="page0">
+    <span class="tag">健康守護 ｜ 入口</span>
+    <h1>今日，我哋想守護邊一位？</h1>
+    <p class="subtitle">選擇本次規劃對象，系統將自動調整專屬問題情境與防線分析：</p>
+    
     <div class="role-grid">
-      <!-- 角色 1：成人 -->
-      <div class="role-card selected" id="roleCardAdult" onclick="selectRole('adult')">
+      <div class="role-card selected" id="roleBtnAdult" data-role="adult">
         <div class="role-emoji">👨‍👩‍👧</div>
         <div class="role-title">成人</div>
         <div class="role-subtitle">守護自己</div>
-        <div class="role-desc">工作／收入／家庭責任<br>維持家庭生活水準與資產防線</div>
+        <div class="role-desc">工作／收入／家庭責任<br>維持生活水準與家庭資產防線</div>
       </div>
-
-      <!-- 角色 2：小朋友 -->
-      <div class="role-card" id="roleCardChild" onclick="selectRole('child')">
+      <div class="role-card" id="roleBtnChild" data-role="child">
         <div class="role-emoji">👶</div>
         <div class="role-title">小朋友</div>
         <div class="role-subtitle">守護孩子</div>
-        <div class="role-desc">健康／成長／教育規劃<br>確保黃金治療與父母停工照護儲備</div>
+        <div class="role-desc">健康／成長／教育規劃<br>確保黃金治療與父母停工照護基金</div>
       </div>
     </div>
 
-    <div class="nav-btn-group">
-      <button type="button" class="btn-primary" onclick="goToHPStage(1)">開始健康防線探索 →</button>
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" data-nav="next-0">開始健康防線探索 →</button>
     </div>
-  </div>
+  </section>
 
-  <!-- 第 1 步：01｜期望與目標 -->
-  <div class="stage-card" id="stage-hp-1">
-    <span class="stage-tag">01｜健康變化與期望</span>
-    <h2 class="stage-title" id="st1Title">如果健康出現變化，你最希望可以繼續擁有甚麼？</h2>
-    <p class="stage-desc" id="st1Desc">面對未知的健康風險，確認你最重視且最不希望被中斷的價值：</p>
-
-    <div class="grid-2col" id="st1OptionsContainer">
-      <!-- 動態載入選項 -->
+  <!-- STEP 1 -->
+  <section class="card" id="page1">
+    <span class="tag">01｜關注／重視</span>
+    <h1 id="st1HeaderTitle">如果健康突然出現變化，你最希望得到甚麼？</h1>
+    <p class="subtitle" id="st1HeaderSub">先唔講產品。用你真正重視的事情，建立今次分析的方向。</p>
+    <div class="option-list" id="st1OptionList">
+      <!-- JS 動態依角色渲染 -->
     </div>
-
-    <div class="nav-btn-group">
-      <button type="button" class="btn-secondary" onclick="goToHPStage(0)">← 返回主頁選角</button>
-      <button type="button" class="btn-primary" onclick="goToHPStage(2)">下一步：評估最擔心狀況 →</button>
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary" data-nav="to-0">← 返回主頁</button>
+      <button type="button" class="btn btn-primary" data-nav="next-1">下一步 →</button>
     </div>
-  </div>
+  </section>
 
-  <!-- 第 2 步：02｜核心憂慮點 -->
-  <div class="stage-card" id="stage-hp-2">
-    <span class="stage-tag">02｜風險評估</span>
-    <h2 class="stage-title" id="st2Title">假設醫生話需要一段較長時間治療，你最擔心邊一樣？</h2>
-    <p class="stage-desc">在漫長的康復過程中，哪一項最容易擊垮家庭目前的平衡？</p>
-
-    <div class="grid-2col" id="st2OptionsContainer">
-      <!-- 動態載入選項 -->
+  <!-- STEP 2 -->
+  <section class="card" id="page2">
+    <span class="tag">02｜想像一下</span>
+    <h1 id="st2HeaderTitle">如果需要接受治療，你最唔想遇到甚麼？</h1>
+    
+    <div class="dual-frontline-highlight" id="st2HighlightBox">
+      🚨 一場大病往往有兩條戰線：一條是前線<strong>【即時醫療開支】</strong>，另一條是後方<strong>【長期收入中斷／家庭生活維持】</strong>。
     </div>
-
-    <div class="nav-btn-group">
-      <button type="button" class="btn-secondary" onclick="goToHPStage(1)">← 返回上一頁</button>
-      <button type="button" class="btn-primary" onclick="goToHPStage(3)">下一步：檢視現有防線 →</button>
+    <div class="option-list" id="st2OptionList">
+      <!-- JS 動態依角色渲染 -->
     </div>
-  </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary" data-nav="to-1">← 返回</button>
+      <button type="button" class="btn btn-primary" data-nav="next-2">下一步：檢視已有防線 →</button>
+    </div>
+  </section>
 
-  <!-- 第 3 步：03｜現有防線檢視 (勾選形式) -->
-  <div class="stage-card" id="stage-hp-3">
-    <span class="stage-tag">03｜防線盤點</span>
-    <h2 class="stage-title">現有防線全面盤點</h2>
-    <p class="stage-desc">勾選目前已擁有的保障，並評估其承托力現況：</p>
-
-    <div id="defenseListContainer">
-      <!-- 防線 1: 公司醫療 -->
-      <div class="defense-row checked" id="row-def-corp">
-        <div class="defense-left">
-          <input type="checkbox" id="chk-def-corp" checked onchange="toggleDefenseRow('corp')">
+  <!-- STEP 3 -->
+  <section class="card" id="page3">
+    <span class="tag">03｜已有防線檢視</span>
+    <h1>你已有的保障，可以幫你走幾遠？</h1>
+    
+    <!-- 勾選呈現形式：防線 / 現況 / 狀態 -->
+    <div class="section-block" style="margin-top:0; padding:14px;">
+      <h2 style="font-size:15px; color:var(--primary); margin-bottom:10px;">📋 現有防線盤點</h2>
+      
+      <div class="defense-check-row checked" id="row-chk-corp">
+        <label class="defense-left-label">
+          <input type="checkbox" id="chk-def-corp" checked>
           <span>🏢 公司團體醫療</span>
-        </div>
+        </label>
         <select class="defense-status-select" id="status-def-corp">
-          <option value="basic">基礎普通房 (有上限)</option>
-          <option value="full">全數保障 (高額)</option>
+          <option value="basic">基礎普通房 (有細項上限)</option>
+          <option value="full">半私家/全數保障</option>
           <option value="unknown">不清楚細節</option>
         </select>
       </div>
 
-      <!-- 防線 2: 個人醫療 -->
-      <div class="defense-row checked" id="row-def-indiv">
-        <div class="defense-left">
-          <input type="checkbox" id="chk-def-indiv" checked onchange="toggleDefenseRow('indiv')">
+      <div class="defense-check-row checked" id="row-chk-indiv">
+        <label class="defense-left-label">
+          <input type="checkbox" id="chk-def-indiv" checked>
           <span>🛡️ 個人醫療保險</span>
-        </div>
+        </label>
         <select class="defense-status-select" id="status-def-indiv">
           <option value="high">高端自願醫保 (免找數)</option>
-          <option value="standard" selected>傳統標準醫保 (有分項上限)</option>
+          <option value="standard" selected>傳統標準醫保 (有細項限額)</option>
           <option value="vhis">標準自願醫保</option>
         </select>
       </div>
 
-      <!-- 防線 3: 危疾保障 -->
-      <div class="defense-row checked" id="row-def-ci">
-        <div class="defense-left">
-          <input type="checkbox" id="chk-def-ci" checked onchange="toggleDefenseRow('ci')">
+      <div class="defense-check-row checked" id="row-chk-ci">
+        <label class="defense-left-label">
+          <input type="checkbox" id="chk-def-ci" checked>
           <span>🚨 危疾保障 (現金儲備)</span>
-        </div>
+        </label>
         <select class="defense-status-select" id="status-def-ci">
-          <option value="below500k">約 HK$ 30 萬 - 50 萬</option>
-          <option value="1m">約 HK$ 100 萬</option>
+          <option value="300k">約 HK$ 30 萬 - 50 萬</option>
+          <option value="1m" selected>約 HK$ 100 萬</option>
           <option value="multi">多重持續保障</option>
         </select>
       </div>
 
-      <!-- 防線 4: 家庭儲備 -->
-      <div class="defense-row checked" id="row-def-saving">
-        <div class="defense-left">
-          <input type="checkbox" id="chk-def-saving" checked onchange="toggleDefenseRow('saving')">
-          <span>💰 家庭緊急積蓄</span>
-        </div>
+      <div class="defense-check-row checked" id="row-chk-saving">
+        <label class="defense-left-label">
+          <input type="checkbox" id="chk-def-saving" checked>
+          <span>💰 家庭緊急儲備</span>
+        </label>
         <select class="defense-status-select" id="status-def-saving">
           <option value="6m">約 6 個月生活費</option>
-          <option value="12m">約 1 年生活費</option>
+          <option value="12m" selected>約 1 年生活費</option>
           <option value="tight">非常緊拙</option>
         </select>
       </div>
-    </div>
 
-    <!-- 核心金句提醒框 -->
-    <div class="yellow-alert-box" style="margin-top:16px;">
-      💡 <strong>核心反思：</strong><br>
-      「而家問題唔係有冇保險，而係呢幾道防線加埋，夠唔夠承受一次真正嘅健康風險？」
-    </div>
-
-    <div class="nav-btn-group">
-      <button type="button" class="btn-secondary" onclick="goToHPStage(2)">← 返回上一頁</button>
-      <button type="button" class="btn-primary" onclick="goToHPStage(4)">下一步：選擇先看防線 →</button>
-    </div>
-  </div>
-
-  <!-- 第 4 步：04｜防線分流選擇 -->
-  <div class="stage-card" id="stage-hp-4">
-    <span class="stage-tag">04｜決策分流</span>
-    <h2 class="stage-title" id="st4Title">你想先睇邊一條防線？</h2>
-    <p class="stage-desc">點擊下方卡片，深入了解並直接啟動專屬的精算分析：</p>
-
-    <!-- 分流 1：醫療防線 -->
-    <div class="flow-action-card selected" id="flowCardMedical" onclick="selectFlow('medical')">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-size:16px; font-weight:900; color:#1e3a8a;">🏥 醫療防線</span>
-        <span style="font-size:11px; background:#eff6ff; color:#1e40af; padding:2px 8px; border-radius:6px; font-weight:bold;">醫療支出對沖</span>
-      </div>
-      <div style="font-size:13.5px; color:#334155; line-height:1.5;" id="st4MedDesc">
-        「如果需要治療，醫療費會唔會影響你對醫院同名醫嘅選擇？」
+      <div class="yellow-red-warning" style="margin-top:10px;">
+        💡 <strong>而家問題唔係有冇保險，而係呢幾道防線加埋，夠唔夠承受一次真正嘅健康風險？</strong>
       </div>
     </div>
 
-    <!-- 分流 2：危疾／家庭成長防線 -->
-    <div class="flow-action-card" id="flowCardCI" onclick="selectFlow('ci')">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-size:16px; font-weight:900; color:#d97706;" id="st4CITitle">🛡️ 收入及生活防線</span>
-        <span style="font-size:11px; background:#fffbeb; color:#b45309; padding:2px 8px; border-radius:6px; font-weight:bold;">生活現金流對沖</span>
+    <!-- 醫療防線試算 -->
+    <div class="section-block" id="blockMedical">
+      <h2>🏥 醫療防線試算</h2>
+      <div class="form-group" style="background:#ffffff; padding:12px; border:1.5px solid var(--primary); border-radius:10px;">
+        <label style="color:var(--primary); font-size:13px;">預計私家醫療費用 (HK$)</label>
+        <input type="text" id="medicalCost" value="200,000" class="format-currency" style="font-size:16px; font-weight:800;">
       </div>
-      <div style="font-size:13.5px; color:#334155; line-height:1.5;" id="st4CIDesc">
-        「如果需要長期休養治療，家庭生活儲備可以承受幾耐？」
-      </div>
-    </div>
 
-    <div class="nav-btn-group">
-      <button type="button" class="btn-secondary" onclick="goToHPStage(3)">← 返回防線盤點</button>
-      <button type="button" class="btn-primary" onclick="goToHPStage(5)">下一步：查看防線總結與缺口 →</button>
-    </div>
-  </div>
-
-  <!-- 第 5 步：05｜總結與跨防線交叉提醒 (修復第三框邏輯) -->
-  <div class="stage-card" id="stage-hp-5">
-    <span class="stage-tag">05｜防線診斷總結</span>
-    <h2 class="stage-title">你的專屬防線診斷摘要</h2>
-    <p class="stage-desc">結合前面所選的期望、憂慮與盤點結果，為你梳理核心缺口：</p>
-
-    <!-- 框 1：首要守護目標 -->
-    <div class="stat-grid-box" style="margin-top:0; border-left:5px solid var(--primary);">
-      <div style="font-size:12px; font-weight:bold; color:#64748b;">🎯 核心守護焦點</div>
-      <div style="font-size:16px; font-weight:900; color:#1e3a8a; margin-top:4px;" id="st5SummaryGoal">
-        家庭生活質素、積蓄與資產
+      <div class="stat-display" style="grid-template-columns: 1fr; margin-top: 10px;">
+        <div class="stat-box" style="border: 2px solid var(--danger);">
+          <div class="stat-label" style="font-weight:700; color:var(--danger);">預估醫療自付缺口金額</div>
+          <div class="stat-value highlight" style="font-size:22px;" id="totalMedGapDisplay">HK$ 20,000</div>
+        </div>
       </div>
     </div>
 
-    <!-- 框 2：主要憂慮與即時防線建議 -->
-    <div class="stat-grid-box" style="border-left:5px solid #059669;">
-      <div style="font-size:12px; font-weight:bold; color:#64748b;">🛡️ 優先加固防線</div>
-      <div style="font-size:16px; font-weight:900; color:#059669; margin-top:4px;" id="st5SummaryPrimary">
-        醫療防線（確保全數賠償，免動用積蓄）
+    <!-- 危疾生活防線試算 -->
+    <div class="section-block" id="blockCI">
+      <h2 id="ciBlockTitle">🛡 重大疾病生活質素防線</h2>
+      <div class="input-grid">
+        <div class="form-group">
+          <label id="lblCiMonthly">每月家庭必要開支 (HK$)</label>
+          <input type="text" id="ciMonthly" value="40,000" class="format-currency">
+        </div>
+        <div class="form-group">
+          <label id="lblCiMonths">休養中斷收入時間 (月)</label>
+          <input type="number" id="ciMonths" value="36" min="6" max="120">
+        </div>
+      </div>
+      <div class="defense-card">
+        <h3>現有危疾生活防線</h3>
+        <div class="form-group">
+          <label>現有危疾保障保額 (HK$)</label>
+          <input type="text" id="existingCI" value="500,000" class="format-currency">
+        </div>
+      </div>
+      <div class="stat-display">
+        <div class="stat-box">
+          <div class="stat-label" id="lblCiTotal">所需生活總儲備</div>
+          <div class="stat-value" id="ciTotalDisplay">HK$ 1,440,000</div>
+        </div>
+        <div class="stat-box" style="border: 1.5px solid var(--danger); background: var(--danger-light);">
+          <div class="stat-label" style="color:var(--danger); font-weight:700;">扣除現有保障後淨缺口</div>
+          <div class="stat-value highlight" id="ciNetGapDisplay">HK$ 940,000</div>
+        </div>
       </div>
     </div>
 
-    <!-- 框 3：交叉補充提醒 (修復：選醫療提醒危疾現金流，選危疾提醒醫療高額自付額) -->
-    <div id="st5CrossAlertBox">
-      <!-- JS 動態生成精準提醒 -->
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary" data-nav="to-2">← 返回</button>
+      <button type="button" class="btn btn-primary" data-nav="to-4">下一步：評估失去代價 →</button>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="card" id="page4">
+    <span class="tag">04｜失去的代價</span>
+    <h1 id="st4HeaderTitle">如果真的發生，<br>邊樣係你最不想失去／中斷？</h1>
+    <p class="subtitle" id="st4HeaderSub">可選擇多於一項：</p>
+    
+    <div class="grid-2x2" id="st4LossGrid">
+      <button type="button" class="grid-btn selected" data-loss="家庭現有生活質素">🏠<br>家庭生活質素</button>
+      <button type="button" class="grid-btn selected" data-loss="辛苦累積的積蓄與資產">💰<br>積蓄與資產</button>
+      <button type="button" class="grid-btn" data-loss="子女的教育基金及成長安排">🎓<br>子女教育規劃</button>
+      <button type="button" class="grid-btn" data-loss="既定的平穩退休生活">🌅<br>退休儲備進度</button>
     </div>
 
-    <div class="nav-btn-group" style="margin-top:20px;">
-      <button type="button" class="btn-secondary" onclick="goToHPStage(4)">← 返回調整分流</button>
-      <button type="button" class="btn-primary" id="btnLaunchApp" style="background:#059669;" onclick="launchTargetApp()">
-        🚀 即刻進入專屬精算規劃 →
-      </button>
+    <!-- 04 專屬防線分流選擇 -->
+    <div class="section-block" style="background:#fff; border:1.5px solid var(--primary); margin-top:18px;">
+      <h3 style="font-size:15px; color:var(--primary); margin-bottom:8px;" id="st4FlowLeadTitle">你而家想先睇邊一條防線？</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;" id="st4FlowBtnGrid">
+        <div class="choice-btn selected" id="flowBtnMed" data-flow="medical" style="padding:12px;">
+          <span class="title" style="font-size:14px;">🏥 醫療防線</span>
+          <span class="desc" id="flowMedDesc" style="font-size:12px;">「如果需要治療，醫療費會唔會影響選擇？」</span>
+        </div>
+        <div class="choice-btn" id="flowBtnCI" data-flow="ci" style="padding:12px;">
+          <span class="title" style="font-size:14px;" id="flowCITitle">🛡 生活防線</span>
+          <span class="desc" id="flowCIDesc" style="font-size:12px;">「如果需要長期治療，家庭可以承受幾耐？」</span>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary" data-nav="to-3">← 返回</button>
+      <button type="button" class="btn btn-primary" data-nav="next-4">下一步：解決方案 →</button>
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="card" id="page5">
+    <span class="tag">05｜專屬方案方向</span>
+    <h1>根據你的重視與關注，得出以下總結及缺口</h1>
+    <div id="thoughtBox"></div>
+    <div id="frontlineBox"></div>
+    <div class="section-block" id="summaryBlock" style="line-height: 1.8; font-size: 14px;"></div>
+    
+    <div class="section-block" style="background:#ffffff; border:1.5px solid var(--border);">
+      <h3 style="font-size:16px; color:var(--primary); margin-bottom:8px;">💡 解決方案</h3>
+      <p id="solutionDesc" style="font-size:13px; color:var(--text-sub); line-height:1.6; margin-bottom:14px;"></p>
+      
+      <div class="solution-group" id="solutionButtonsArea"></div>
+    </div>
+    
+    <div class="btn-group" style="margin-top: 16px;">
+      <button type="button" class="btn btn-secondary" data-nav="to-4">← 返上一頁</button>
+    </div>
+  </section>
 </div>
 
 <script>
-  // 核心狀態庫
-  const hpState = {
-    role: 'adult', // 'adult' | 'child'
-    st1Choice: 'living',
-    st2Choice: 'cashflow',
-    flowChoice: 'medical', // 'medical' | 'ci'
-    defenses: { corp: true, indiv: true, ci: true, saving: true }
-  };
-
-  // 角色文字配置庫
-  const roleConfig = {
-    adult: {
-      badge: '👨‍👩‍👧 成人模式',
-      st1Title: '如果健康出現變化，你最希望可以繼續擁有甚麼？',
-      st1Desc: '面對未知的健康風險，確認你最重視且最不希望被中斷的價值：',
-      st1Options: [
-        { key: 'living', emoji: '🏠', text: '家庭生活質素不受影響' },
-        { key: 'assets', emoji: '💰', text: '辛辛苦苦積累的積蓄與資產' },
-        { key: 'edu', emoji: '🎓', text: '子女原定的教育規劃進度' },
-        { key: 'retire', emoji: '🌅', text: '未來退休儲備不被耗盡' }
-      ],
-      st2Title: '假設醫生話需要一段較長時間治療，你最擔心邊一樣？',
-      st2Options: [
-        { key: 'medical_cost', emoji: '🏥', title: 'A ｜ 醫療費用突然增加', desc: '自付額高昂、標靶藥及自費項目耗盡積蓄' },
-        { key: 'stop_work', emoji: '💼', title: 'B ｜ 工作停頓失去收入', desc: '停工 2-3 年失去家庭主要現金流' },
-        { key: 'family_burden', emoji: '💔', title: 'C ｜ 成為家人長期的照顧負擔', desc: '需要家人長期照顧影響他們的工作與生活' },
-        { key: 'all_above', emoji: '⚠️', title: 'D ｜ 以上全部都極度擔心', desc: '醫療費與生活開支雙重夾擊' }
-      ],
-      st4Title: '你而家想先睇邊一條防線？',
-      st4MedDesc: '「如果需要治療，醫療費會唔會影響你對醫院同名醫嘅選擇？」',
-      st4CITitle: '🛡️ 收入及生活防線',
-      st4CIDesc: '「如果需要長期休養治療，家庭生活儲備可以承受幾耐？」'
-    },
-    child: {
-      badge: '👶 兒童模式',
-      st1Title: '如果健康出現變化，你最希望小朋友可以繼續擁有甚麼？',
-      st1Desc: '在孩子成長路上，守護最重要的健康與生活權利：',
-      st1Options: [
-        { key: 'best_med', emoji: '🏥', text: '最好嘅醫療選擇 (頂尖名醫及技術)' },
-        { key: 'normal_life', emoji: '🏫', text: '正常學習及生活 (不因病耽誤成長)' },
-        { key: 'family_safe', emoji: '❤️', text: '家庭生活唔受太大影響 (父母專心陪伴)' },
-        { key: 'all_three', emoji: '⚖️', text: '三樣都重要 (全方位守護成長防線)' }
-      ],
-      st2Title: '假設醫生話：小朋友需要一段較長時間治療，你最擔心邊一樣？',
-      st2Options: [
-        { key: 'med_surge', emoji: '🏥', title: 'A ｜ 醫療費用突然增加', desc: '兒科專項治療、新型藥物開支龐大' },
-        { key: 'parent_stop', emoji: '💼', title: 'B ｜ 父母其中一個要停工照顧', desc: '失去一份穩定收入，家庭開支激增' },
-        { key: 'growth_impact', emoji: '🏫', title: 'C ｜ 小朋友學習／成長受到影響', desc: '黃金發育與教育進度受阻' },
-        { key: 'all_worry', emoji: '⚠️', title: 'D ｜ 以上全部都擔心', desc: '需要兼顧長期龐大醫療與照護生活費' }
-      ],
-      st4Title: '👶 小朋友健康防線：你想先睇邊一條？',
-      st4MedDesc: '「如果需要治療，醫療費會唔會影響你對最好醫院及治療嘅選擇？」',
-      st4CITitle: '🛡️ 成長／家庭防線 (👉 進入危疾)',
-      st4CIDesc: '「如果需要長期治療，父母停工照顧基金與家庭可以承受幾耐？」'
-    }
-  };
-
-  function selectRole(roleKey) {
-    hpState.role = roleKey;
-    document.getElementById('roleCardAdult').classList.toggle('selected', roleKey === 'adult');
-    document.getElementById('roleCardChild').classList.toggle('selected', roleKey === 'child');
+  (function() {
+    const APP_VERSION = 'v1.1.0';
     
-    document.getElementById('topRoleBadge').innerText = (roleKey === 'adult') ? '👨‍👩‍👧 成人模式' : '👶 兒童模式';
-    applyRoleText();
-  }
+    var state = {
+      role: 'adult', // 'adult' | 'child'
+      step1Focus: 'medical',
+      step1RawText: '',
+      step2Scenario: 'medical',
+      step2RawText: '',
+      flowTarget: 'medical',
+      losses: ['家庭現有生活質素', '辛苦累積的積蓄與資產'],
+      medCost: 200000,
+      companyLimit: 100000,
+      companyRate: 80,
+      companyPay: 80000,
+      personalPay: 100000,
+      finalMedGap: 20000,
+      ciTotal: 1440000,
+      ciExisting: 500000,
+      ciNetGap: 940000,
+      hasCompanyMed: 'yes',
+      hasPersonalMed: 'yes',
+      ciMonthly: 40000,
+      ciMonths: 36
+    };
 
-  function applyRoleText() {
-    const cfg = roleConfig[hpState.role];
+    // 角色題庫設定
+    const roleContent = {
+      adult: {
+        badge: '👨‍👩‍👧 成人模式',
+        st1Title: '如果健康突然出現變化，你最希望得到甚麼？',
+        st1Sub: '先唔講產品。用你真正重視的事情，建立今次分析的方向。',
+        st1Options: [
+          { key: 'medical', title: '🏥 有需要時，可以即時選擇合適醫療', desc: '重視醫療選擇，不希望因費用而先作取捨。' },
+          { key: 'ci', title: '🛡 即使面對重大疾病，家庭生活仍然可以維持', desc: '重視疾病發生後的家庭財務承托。' },
+          { key: 'both', title: '🏥＋🛡 兩方面都重要', desc: '既想保留醫療選擇，也想保留家庭財務安全。' }
+        ],
+        st2Title: '如果需要接受治療，你最唔想遇到甚麼？',
+        st2Highlight: '🚨 一場大病往往有兩條戰線：一條是前線<strong>【即時醫療開支】</strong>，另一條是後方<strong>【長期收入中斷／家庭生活維持】</strong>。',
+        st2Options: [
+          { key: 'medical', title: '🏥 「想去私家，但因費用而猶豫」', desc: '擔心前線醫療開支過大，限制了治療質素與速度。' },
+          { key: 'ci', title: '🛡 「治療期間，家庭財務受到牽動」', desc: '擔心後方失去工作收入，供樓與生活質素難以維持。' },
+          { key: 'both', title: '⚖️ 「兩樣都唔想發生」', desc: '前線醫療選擇與後方生活防線，兩者缺一不可。' }
+        ],
+        ciBlockTitle: '🛡 重大疾病生活質素防線',
+        lblMonthly: '每月家庭必要開支 (HK$)',
+        st4FlowLead: '你而家想先睇邊一條防線？',
+        flowCITitle: '🛡 收入及生活防線',
+        flowCIDesc: '「如果需要長期休養治療，家庭生活儲備可以承受幾耐？」'
+      },
+      child: {
+        badge: '👶 兒童模式',
+        st1Title: '如果健康出現變化，你最希望小朋友可以繼續擁有甚麼？',
+        st1Sub: '在孩子成長關鍵期，確保醫療選擇與家庭日常獲得最大守護。',
+        st1Options: [
+          { key: 'medical', title: '🏥 最好嘅醫療選擇', desc: '讓孩子第一時間接受頂尖兒科及專家治療，免因費用妥協。' },
+          { key: 'ci', title: '🏫 正常學習及生活', desc: '確保復康期間學業及生活發展不受大病中斷。' },
+          { key: 'family', title: '❤️ 家庭生活唔受太大影響', desc: '父母專心陪伴照顧，家庭日常開支與供樓無後顧之憂。' },
+          { key: 'both', title: '⚖️ 三樣都重要', desc: '全方位守護孩子黃金成長與家庭財務防線。' }
+        ],
+        st2Title: '假設醫生話：小朋友需要一段較長時間治療，你最擔心邊一樣？',
+        st2Highlight: '🚨 照顧患病小朋友有兩重負擔：一重是<strong>【昂貴專科醫療費用】</strong>，另一重是<strong>【父母停工全天候照顧的薪金損失】</strong>。',
+        st2Options: [
+          { key: 'medical', title: 'A ｜ 醫療費用突然增加', desc: '兒童微創手術、新型標靶藥或自費項目消耗龐大積蓄。' },
+          { key: 'ci', title: 'B ｜ 父母其中一個要停工照顧', desc: '失去一份重要收入，同時家庭護理開支倍增。' },
+          { key: 'growth', title: 'C ｜ 小朋友學習／成長受到影響', desc: '擔心身心發展及成長進度受阻。' },
+          { key: 'both', title: 'D ｜ 以上都擔心', desc: '醫療費、停工損失與照顧壓力雙重夾擊。' }
+        ],
+        ciBlockTitle: '🛡 父母停工照顧及成長生活防線',
+        lblMonthly: '每月家庭日常＋陪伴照顧開支 (HK$)',
+        st4FlowLead: '👶 小朋友健康防線：你而家想先睇邊一條防線？',
+        flowCITitle: '🛡 成長／家庭防線 (👉 進入危疾)',
+        flowCIDesc: '「如果需要長期治療，家庭可以承受幾耐？」'
+      }
+    };
 
-    // 01 頁面渲染
-    document.getElementById('st1Title').innerText = cfg.st1Title;
-    document.getElementById('st1Desc').innerText = cfg.st1Desc;
-    let st1Html = '';
-    cfg.st1Options.forEach((opt, idx) => {
-      const isSel = idx === 0 ? 'selected' : '';
-      st1Html += `
-        <button type="button" class="select-card-btn ${isSel}" data-st1="${opt.key}" onclick="chooseSt1Option('${opt.key}', this)">
-          ${opt.emoji} ${opt.text}
-        </button>
-      `;
-    });
-    document.getElementById('st1OptionsContainer').innerHTML = st1Html;
-    hpState.st1Choice = cfg.st1Options[0].key;
-
-    // 02 頁面渲染
-    document.getElementById('st2Title').innerText = cfg.st2Title;
-    let st2Html = '';
-    cfg.st2Options.forEach((opt, idx) => {
-      const isSel = idx === 0 ? 'selected' : '';
-      st2Html += `
-        <button type="button" class="select-card-btn ${isSel}" data-st2="${opt.key}" onclick="chooseSt2Option('${opt.key}', this)">
-          <div>${opt.emoji} <strong>${opt.title}</strong></div>
-          <div style="font-size:12px; color:#64748b; font-weight:normal; margin-top:4px;">${opt.desc}</div>
-        </button>
-      `;
-    });
-    document.getElementById('st2OptionsContainer').innerHTML = st2Html;
-    hpState.st2Choice = cfg.st2Options[0].key;
-
-    // 04 頁面渲染
-    document.getElementById('st4Title').innerText = cfg.st4Title;
-    document.getElementById('st4MedDesc').innerText = cfg.st4MedDesc;
-    document.getElementById('st4CITitle').innerText = cfg.st4CITitle;
-    document.getElementById('st4CIDesc').innerText = cfg.st4CIDesc;
-  }
-
-  function chooseSt1Option(key, el) {
-    hpState.st1Choice = key;
-    document.querySelectorAll('#st1OptionsContainer .select-card-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected');
-  }
-
-  function chooseSt2Option(key, el) {
-    hpState.st2Choice = key;
-    document.querySelectorAll('#st2OptionsContainer .select-card-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected');
-  }
-
-  function toggleDefenseRow(defKey) {
-    const chk = document.getElementById('chk-def-' + defKey);
-    const row = document.getElementById('row-def-' + defKey);
-    hpState.defenses[defKey] = chk.checked;
-    row.classList.toggle('checked', chk.checked);
-  }
-
-  function selectFlow(flowKey) {
-    hpState.flowChoice = flowKey;
-    document.getElementById('flowCardMedical').classList.toggle('selected', flowKey === 'medical');
-    document.getElementById('flowCardCI').classList.toggle('selected', flowKey === 'ci');
-  }
-
-  function goToHPStage(stageNum) {
-    document.querySelectorAll('.stage-card').forEach(c => c.classList.remove('active'));
-    const target = document.getElementById('stage-hp-' + stageNum);
-    if (target) target.classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    if (stageNum === 5) renderStage5Summary();
-  }
-
-  // 05 總結與交叉提醒修復
-  function renderStage5Summary() {
-    const isChild = hpState.role === 'child';
-    const isMedFlow = hpState.flowChoice === 'medical';
-
-    // 框 1：守護目標
-    let goalText = isChild ? '最好嘅醫療選擇、正常學習成長與家庭陪伴' : '家庭生活質素、積蓄與資產';
-    document.getElementById('st5SummaryGoal').innerText = goalText;
-
-    // 框 2：優先加固
-    let priText = isMedFlow ? '醫療防線（鎖定頂尖私家醫院全數保障，免自掏腰包）' : (isChild ? '成長及照顧防線（鎖定父母停工照護儲備＋兒童特定保障）' : '生活現金流防線（建立 3 年生活儲備，對沖停工損失）');
-    document.getElementById('st5SummaryPrimary').innerText = priText;
-
-    // 框 3：交叉補充提醒 (核心修復：選醫療提醒危疾，選危疾提醒醫療)
-    const alertBox = document.getElementById('st5CrossAlertBox');
-    if (isMedFlow) {
-      alertBox.innerHTML = `
-        <div class="yellow-alert-box">
-          ⚠️ <strong>補充注意：重大疾病的「生活現金流與停工照護」防線</strong><br>
-          即使醫療保險全數報銷手術費，但${isChild ? '<strong>父母其中一方停工陪伴照顧的薪金損失</strong>' : '<strong>患者停工休養期間的家庭日常開支（供樓、水電、家用）</strong>'}醫療保險並不能賠償現金。仍需透過<strong>危疾一筆過理賠</strong>作為生活應急支柱！
-        </div>
-      `;
-    } else {
-      alertBox.innerHTML = `
-        <div class="red-alert-box">
-          ⚠️ <strong>補充注意：不可忽視的「高額醫療實報實銷」防線</strong><br>
-          若僅有危疾現金儲備而缺少高端醫療防線，動輒數十萬至百萬的私家醫院微創手術、標靶藥或深切治療開支，會迅速<strong>蠶食你的危疾理賠金與家庭積蓄</strong>。建議雙軌並行！
-        </div>
-      `;
+    function parseNum(val) {
+      if (typeof val === 'number') return val;
+      return Number(String(val || '').replace(/,/g, '')) || 0;
     }
 
-    // 更新按鈕文案
-    const btnLaunch = document.getElementById('btnLaunchApp');
-    btnLaunch.innerText = isMedFlow ? '🚀 即刻進入 Medical App (醫療精算) →' : '🚀 即刻進入 CIApp (危疾生活防線) →';
-  }
+    document.querySelectorAll('.format-currency').forEach(function(input) {
+      input.addEventListener('input', function() {
+        var rawVal = this.value.replace(/,/g, '').replace(/[^\d]/g, '');
+        if (rawVal === '') {
+          this.value = '';
+          return;
+        }
+        this.value = Number(rawVal).toLocaleString();
+      });
+      input.addEventListener('blur', function() {
+        if (this.value === '') this.value = '0';
+      });
+    });
 
-  // 跳轉並攜帶所有連動參數
-  function launchTargetApp() {
-    const isChild = hpState.role === 'child';
-    const isMedFlow = hpState.flowChoice === 'medical';
-
-    // 構建連動 URL 參數
-    const params = new URLSearchParams();
-    params.set('type', hpState.role);
-    params.set('age', isChild ? '5' : '40');
-    params.set('expense', isChild ? '30000' : '40000');
-    params.set('existing', isChild ? '200000' : '300000');
-    params.set('goals', isChild ? '醫療選擇,子女教育,生活質素' : '生活質素,積蓄與資產');
-
-    const queryString = params.toString();
-
-    if (isMedFlow) {
-      // 跳轉至 Medical App (請替換為你的 Medical App 網址)
-      window.location.href = `./medical.html?${queryString}`;
-    } else {
-      // 跳轉至 CIApp (自動連動 01 與 03 頁面)
-      window.location.href = `./ciapp.html?${queryString}`;
+    function showStep(step) {
+      for (var i = 0; i <= 5; i++) {
+        var card = document.getElementById('page' + i);
+        var pstep = document.getElementById('pstep' + i);
+        if (card) card.classList.toggle('active', i === step);
+        if (pstep) pstep.classList.toggle('active', i <= step);
+      }
+      var counter = document.getElementById('pageCounter');
+      if (counter) counter.innerText = '0' + step + ' / 05';
+      window.scrollTo(0, 0);
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    applyRoleText();
-  });
+    function renderRoleContent() {
+      const cfg = roleContent[state.role];
+      document.getElementById('topRoleBadge').innerText = cfg.badge;
+
+      // 01 渲染
+      document.getElementById('st1HeaderTitle').innerText = cfg.st1Title;
+      document.getElementById('st1HeaderSub').innerText = cfg.st1Sub;
+      let st1Html = '';
+      cfg.st1Options.forEach((opt, idx) => {
+        let sel = (idx === 0) ? 'selected' : '';
+        if (idx === 0) {
+          state.step1Focus = opt.key;
+          state.step1RawText = opt.title.replace(/^[^\s]+\s*/, '');
+        }
+        st1Html += `
+          <button type="button" class="choice-btn ${sel}" data-step1="${opt.key}">
+            <span class="title">${opt.title}</span>
+            <span class="desc">${opt.desc}</span>
+          </button>
+        `;
+      });
+      document.getElementById('st1OptionList').innerHTML = st1Html;
+
+      // 02 渲染
+      document.getElementById('st2HeaderTitle').innerText = cfg.st2Title;
+      document.getElementById('st2HighlightBox').innerHTML = cfg.st2Highlight;
+      let st2Html = '';
+      cfg.st2Options.forEach((opt, idx) => {
+        let sel = (idx === 0) ? 'selected' : '';
+        if (idx === 0) {
+          state.step2Scenario = opt.key;
+          state.step2RawText = opt.title.replace(/^[^\s]+\s*/, '').replace(/[「」]/g, '');
+        }
+        st2Html += `
+          <button type="button" class="choice-btn ${sel}" data-step2="${opt.key}">
+            <span class="title">${opt.title}</span>
+            <span class="desc">${opt.desc}</span>
+          </button>
+        `;
+      });
+      document.getElementById('st2OptionList').innerHTML = st2Html;
+
+      // 03 渲染
+      document.getElementById('ciBlockTitle').innerText = cfg.ciBlockTitle;
+      document.getElementById('lblCiMonthly').innerText = cfg.lblMonthly;
+
+      // 04 渲染
+      document.getElementById('st4FlowLeadTitle').innerText = cfg.st4FlowLead;
+      document.getElementById('flowCITitle').innerText = cfg.flowCITitle;
+      document.getElementById('flowCIDesc').innerText = cfg.flowCIDesc;
+    }
+
+    function applyVisibilityStep3() {
+      var medBlock = document.getElementById('blockMedical');
+      var ciBlock = document.getElementById('blockCI');
+      if (state.step2Scenario === 'medical') {
+        medBlock.style.display = 'block';
+        ciBlock.style.display = 'none';
+      } else if (state.step2Scenario === 'ci' || state.step2Scenario === 'growth') {
+        medBlock.style.display = 'none';
+        ciBlock.style.display = 'block';
+      } else {
+        medBlock.style.display = 'block';
+        ciBlock.style.display = 'block';
+      }
+    }
+
+    function calculate() {
+      var cost = parseNum(document.getElementById('medicalCost').value);
+      state.medCost = cost;
+      
+      // 03 盤點勾選計算
+      var hasComp = document.getElementById('chk-def-corp').checked;
+      var compPay = 0;
+      if (hasComp) {
+        compPay = Math.round(cost * 0.4); // 預設公司賠付約 40%
+      }
+      state.companyPay = compPay;
+
+      var hasPers = document.getElementById('chk-def-indiv').checked;
+      var persPay = 0;
+      if (hasPers) {
+        persPay = Math.max(0, cost - compPay - 20000); // 假設自付額 20K
+      }
+      state.personalPay = persPay;
+
+      var finalGap = Math.max(0, cost - compPay - persPay);
+      state.finalMedGap = finalGap;
+      document.getElementById('totalMedGapDisplay').innerText = 'HK$ ' + Math.round(finalGap).toLocaleString();
+
+      var ciM = parseNum(document.getElementById('ciMonthly').value);
+      var ciMonths = parseNum(document.getElementById('ciMonths').value);
+      var ciExist = parseNum(document.getElementById('existingCI').value);
+      state.ciMonthly = ciM;
+      state.ciMonths = ciMonths;
+      state.ciTotal = ciM * ciMonths;
+      state.ciExisting = ciExist;
+      state.ciNetGap = Math.max(0, state.ciTotal - ciExist);
+      document.getElementById('ciTotalDisplay').innerText = 'HK$ ' + state.ciTotal.toLocaleString();
+      document.getElementById('ciNetGapDisplay').innerText = 'HK$ ' + state.ciNetGap.toLocaleString();
+    }
+
+    function updateSummary() {
+      var thoughtBox = document.getElementById('thoughtBox');
+      var frontlineBox = document.getElementById('frontlineBox');
+      var block = document.getElementById('summaryBlock');
+      var solutionDesc = document.getElementById('solutionDesc');
+      var solutionButtonsArea = document.getElementById('solutionButtonsArea');
+      
+      var isChild = state.role === 'child';
+      var lossText = state.losses.length > 0 ? state.losses.join('、') : '家庭生活質素與資產規劃';
+
+      // 1. 心中想法
+      var thoughtHtml = `
+        <div class="thought-card">
+          💭 <strong>核心關注總結：</strong> 你最希望守護的是<strong>【${state.step1RawText}】</strong>；而在面對治療時最擔心的是<strong>【${state.step2RawText}】</strong>。
+        </div>`;
+      if (thoughtBox) thoughtBox.innerHTML = thoughtHtml;
+
+      // 2. 兩條戰線
+      var frontlineHtml = `
+        <div class="frontline-card-red">
+          🚨 <strong>「健康風險的兩大防禦支柱」</strong>：<br>
+          • <strong>前線（實報實銷醫療）</strong>：確保在私家醫院及頂尖名醫面前擁有最大選擇自主權，免動用個人積蓄；<br>
+          • <strong>後方（危疾生活現金流）</strong>：對應你最想守護的<strong>【${lossText}】</strong>，對沖${isChild ? '<strong>父母停工照顧的薪金損失</strong>' : '<strong>休養期間的家庭必要開支</strong>'}。
+        </div>`;
+      if (frontlineBox) frontlineBox.innerHTML = frontlineHtml;
+
+      // 3. 中間總結框與第三框交叉提醒 (核心修復)
+      if (block) {
+        var summaryHtml = '<div style="margin-bottom:8px;">🎯 <strong>首要守護目標：</strong>' + state.step1RawText + '</div>' +
+                          '<div style="margin-bottom:8px;">🛡 <strong>最不想失去／中斷：</strong>' + lossText + '</div>';
+        
+        if (state.flowTarget === 'medical' || state.step2Scenario === 'medical') {
+          summaryHtml += '<div style="margin-bottom:8px;">🏥 <strong>醫療費用自付缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ' + Math.round(state.finalMedGap).toLocaleString() + '</span></div>';
+        }
+        if (state.flowTarget === 'ci' || state.step2Scenario === 'ci' || state.step2Scenario === 'growth' || state.step2Scenario === 'both') {
+          summaryHtml += '<div style="margin-top:8px;">💰 <strong>生活儲備／停工照護缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ' + Number(state.ciNetGap).toLocaleString() + '</span> (已扣除現有 HK$ ' + Number(state.ciExisting).toLocaleString() + ')</div>';
+        }
+
+        // 🌟 交叉提醒第 3 框修復邏輯
+        // 情況 A：選了「醫療合適/私家」 ➔ 提醒「危疾現金流」
+        if (state.flowTarget === 'medical' || (state.step1Focus === 'medical' && state.step2Scenario === 'medical')) {
+          summaryHtml += `
+            <div class="conflict-alert">
+              ⚠️ <strong>補充注意：重大疾病的「生活現金流與停工照護」防線</strong><br>
+              即使醫療保險全數報銷了手術住院費，但${isChild ? '<strong>父母其中一方停工陪伴照顧的薪金損失</strong>' : '<strong>患者停工休養期間的家庭日常開支（供樓、水電、家用）</strong>'}醫療保險並不能賠償現金。仍需透過<strong>危疾一筆過理賠</strong>作為生活應急支柱！
+            </div>`;
+        }
+        // 情況 B：選了「重大疾病/財務」 ➔ 提醒「醫療防線」
+        else if (state.flowTarget === 'ci' || (state.step1Focus === 'ci' && state.step2Scenario === 'ci')) {
+          summaryHtml += `
+            <div class="conflict-alert">
+              ⚠️ <strong>補充注意：不可忽視的「高額醫療實報實銷」防線</strong><br>
+              若僅有危疾現金儲備而缺少高端醫療防線，私家醫院昂貴的手術費、自費標靶藥或深切治療開支，會迅速<strong>蠶食你的危疾理賠金與家庭積蓄</strong>。建議雙軌並行！
+            </div>`;
+        }
+
+        block.innerHTML = summaryHtml;
+      }
+
+      // 4. 動態跳轉按鈕 (含失去項目 losses 與 role 完整連動)
+      var lossQuery = encodeURIComponent(state.losses.join(','));
+      var medUrl = 'https://ivancww.github.io/medicalclaims?type=' + state.role +
+                   '&cost=' + state.medCost +
+                   '&hasCompany=' + (document.getElementById('chk-def-corp').checked ? 'yes' : 'no') +
+                   '&hasPersonal=' + (document.getElementById('chk-def-indiv').checked ? 'yes' : 'no');
+      
+      var ciUrl = 'https://ivancww.github.io/CIApp?type=' + state.role +
+                  '&expense=' + state.ciMonthly +
+                  '&existing=' + state.ciExisting +
+                  '&goals=' + lossQuery; // 🌟 實現 CIApp 01 頁面連動！
+
+      var btnMedical = `
+        <a href="${medUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn med">
+          <img src="https://ivancww.github.io/medicalclaims/icon-192.png" alt="Medical App Logo" onerror="this.style.display='none'">
+          <div class="solution-btn-text">
+            <span class="app-name">醫療分析 App</span>
+            <span class="app-action">解決醫療費用直接衝擊 →</span>
+          </div>
+        </a>`;
+        
+      var btnCI = `
+        <a href="${ciUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn ci">
+          <img src="https://ivancww.github.io/CIApp/icon-192.png" alt="CI App Logo" onerror="this.style.display='none'">
+          <div class="solution-btn-text">
+            <span class="app-name">危疾規劃 App</span>
+            <span class="app-action">解決收入中斷生活缺口 →</span>
+          </div>
+        </a>`;
+
+      if (state.flowTarget === 'medical') {
+        solutionDesc.innerText = '因應你最關注醫療費用的直接衝擊，建議優先進入醫療分析工具填補自付差額：';
+        solutionButtonsArea.innerHTML = btnMedical;
+        solutionButtonsArea.style.gridTemplateColumns = '1fr';
+      } else {
+        solutionDesc.innerText = '因應你最擔憂收入中斷對家庭的衝擊，建議優先進入危疾規劃工具計算生活儲備：';
+        solutionButtonsArea.innerHTML = btnCI;
+        solutionButtonsArea.style.gridTemplateColumns = '1fr';
+      }
+    }
+
+    // 事件代理
+    document.addEventListener('click', function(e) {
+      // 0. 主頁角色切換
+      var roleBtn = e.target.closest('#page0 .role-card');
+      if (roleBtn) {
+        document.querySelectorAll('#page0 .role-card').forEach(b => b.classList.remove('selected'));
+        roleBtn.classList.add('selected');
+        state.role = roleBtn.dataset.role;
+        renderRoleContent();
+        return;
+      }
+
+      // 1. 第 4 步失去代價多選
+      var gridBtn = e.target.closest('#page4 .grid-btn');
+      if (gridBtn) {
+        gridBtn.classList.toggle('selected');
+        state.losses = [];
+        document.querySelectorAll('#page4 .grid-btn.selected').forEach(function(btn) {
+          state.losses.push(btn.dataset.loss);
+        });
+        return;
+      }
+
+      // 2. 第 4 步決策分流
+      var flowBtn = e.target.closest('#page4 .choice-btn');
+      if (flowBtn && flowBtn.dataset.flow) {
+        document.querySelectorAll('#page4 .choice-btn').forEach(b => b.classList.remove('selected'));
+        flowBtn.classList.add('selected');
+        state.flowTarget = flowBtn.dataset.flow;
+        return;
+      }
+
+      var target = e.target.closest('button');
+      if (!target) return;
+
+      // 3. 第 1 步單選
+      if (target.closest('#page1') && target.dataset.step1) {
+        document.querySelectorAll('#page1 .choice-btn').forEach(function(b) { b.classList.remove('selected'); });
+        target.classList.add('selected');
+        state.step1Focus = target.dataset.step1;
+        state.step1RawText = target.querySelector('.title').innerText.replace(/^[^\s]+\s*/, '');
+        return;
+      }
+
+      // 4. 第 2 步單選
+      if (target.closest('#page2') && target.dataset.step2) {
+        document.querySelectorAll('#page2 .choice-btn').forEach(function(b) { b.classList.remove('selected'); });
+        target.classList.add('selected');
+        state.step2Scenario = target.dataset.step2;
+        state.step2RawText = target.querySelector('.title').innerText.replace(/^[^\s]+\s*/, '').replace(/[「」]/g, '');
+        return;
+      }
+
+      // 5. 導航按鈕處理
+      var nav = target.dataset.nav;
+      if (nav) {
+        if (nav === 'next-0') {
+          showStep(1);
+        } else if (nav === 'next-1') {
+          showStep(2);
+        } else if (nav === 'next-2') {
+          applyVisibilityStep3();
+          showStep(3);
+        } else if (nav === 'to-0') {
+          showStep(0);
+        } else if (nav === 'to-1') {
+          showStep(1);
+        } else if (nav === 'to-2') {
+          showStep(2);
+        } else if (nav === 'to-3') {
+          showStep(3);
+        } else if (nav === 'to-4') {
+          showStep(4);
+        } else if (nav === 'next-4') {
+          if (!state.losses || state.losses.length === 0) {
+            alert('請至少點選一項你最不想失去／中斷的項目');
+            return;
+          }
+          updateSummary();
+          showStep(5);
+        }
+      }
+    });
+
+    // 03 盤點勾選監聽
+    ['chk-def-corp', 'chk-def-indiv', 'chk-def-ci', 'chk-def-saving'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', function() {
+          var row = this.closest('.defense-check-row');
+          if (row) row.classList.toggle('checked', this.checked);
+          calculate();
+        });
+      }
+    });
+
+    document.addEventListener('input', calculate);
+    
+    // 初始化
+    renderRoleContent();
+    calculate();
+  })();
+</script>
+
+<!-- PWA Service Worker 註冊與自動更新管理 -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('HealthPlan PWA Service Worker 註冊成功:', reg.scope);
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('檢測到新版本發佈，正在自動更新...');
+                window.location.reload();
+              }
+            });
+          });
+        })
+        .catch((err) => console.error('Service Worker 註冊失敗:', err));
+    });
+  }
 </script>
 </body>
 </html>
