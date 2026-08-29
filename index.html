@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.1.5</title>
+  <title>Health Protection Planner v1.1.6</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -332,7 +332,7 @@
     }
     .solution-group {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 12px;
       margin-top: 16px;
     }
@@ -407,13 +407,6 @@
       color: var(--danger);
       font-weight: 600;
     }
-    .med-sub-notice {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--danger);
-      margin-left: 6px;
-    }
     .conflict-alert {
       background: #ffffff;
       border: 1.5px dashed var(--danger);
@@ -446,7 +439,7 @@
     <div style="display:flex; align-items:center;">
       <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion">v1.1.5</span>
+      <span class="version-tag" id="appVersion">v1.1.6</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
@@ -473,6 +466,7 @@
       step2RawText: '',
       losses: [],
       alertMsg: '',
+      showAppMode: 'med',
       medCost: 200000,
       companyLimit: 100000,
       companyRate: 80,
@@ -774,6 +768,22 @@
       window.scrollTo(0, 0);
     }
 
+    function applyVisibilityStep3() {
+      var medBlock = document.getElementById('blockMedical');
+      var ciBlock = document.getElementById('blockCI');
+      if (!medBlock || !ciBlock) return;
+      if (state.step2Scenario === 'medical') {
+        medBlock.style.display = 'block';
+        ciBlock.style.display = 'none';
+      } else if (state.step2Scenario === 'ci') {
+        medBlock.style.display = 'none';
+        ciBlock.style.display = 'block';
+      } else {
+        medBlock.style.display = 'block';
+        ciBlock.style.display = 'block';
+      }
+    }
+
     function calculate() {
       var costElem = document.getElementById('medicalCost');
       if (!costElem) return;
@@ -904,27 +914,58 @@
         </div>`;
       frontlineBox.innerHTML = frontlineHtml;
 
-      // 3. 警示與總結
+      // 3. 根據 Google Sheet「規則設定」進行動態匹配
       state.alertMsg = '';
-      var defaultCiAlert = db.config["提醒_重視生活但未看醫療"] || "注意：你首要重視家庭財務/照護，但情境未檢視危疾防線；請留意長期治療時的「危疾生活保障防線」，避免後方現金流真空。";
-      var defaultMedAlert = db.config["提醒_重視醫療但未看危疾"] || "注意：你首要重視醫療選擇，但情境未檢視醫療防線；請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。";
+      state.showAppMode = 'med'; // 預設
 
-      if ((state.step1Focus === 'ci' || state.step1Focus === 'both') && state.step2Scenario === 'medical') {
-        state.alertMsg = defaultCiAlert;
-      } else if ((state.step1Focus === 'medical' || state.step1Focus === 'both') && state.step2Scenario === 'ci') {
-        state.alertMsg = defaultMedAlert;
+      if (db.rules && db.rules.length > 0) {
+        // 先嘗試精確比對 step1 與 step2
+        var matchedRule = db.rules.find(r => r.step1 === state.step1Focus && r.step2 === state.step2Scenario);
+        // 若無，嘗試比對 any 規則
+        if (!matchedRule) {
+          matchedRule = db.rules.find(r => (r.step1 === 'any' || r.step1 === state.step1Focus) && r.step2 === state.step2Scenario);
+        }
+
+        if (matchedRule) {
+          state.alertMsg = (matchedRule.alertMsg && !matchedRule.alertMsg.includes('無須提醒')) ? matchedRule.alertMsg : '';
+          state.showAppMode = matchedRule.showApp;
+        }
+      } else {
+        // 備用預設邏輯 (7大規則)
+        if (state.step2Scenario === 'both') {
+          state.alertMsg = '';
+          state.showAppMode = 'both';
+        } else if (state.step1Focus === 'medical' && state.step2Scenario === 'medical') {
+          state.alertMsg = '注意：你已聚焦前線醫療開支，但請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。';
+          state.showAppMode = 'med';
+        } else if (state.step1Focus === 'medical' && state.step2Scenario === 'ci') {
+          state.alertMsg = '注意：你首要重視醫療選擇，但情境未檢視醫療防線；請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。';
+          state.showAppMode = 'ci';
+        } else if (state.step1Focus === 'ci' && state.step2Scenario === 'medical') {
+          state.alertMsg = '注意：你首要重視家庭財務，但情境未檢視危疾防線；請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。';
+          state.showAppMode = 'ci';
+        } else if (state.step1Focus === 'ci' && state.step2Scenario === 'ci') {
+          state.alertMsg = '注意：你已聚焦後方生活防線，但請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。';
+          state.showAppMode = 'med';
+        } else if (state.step1Focus === 'both' && state.step2Scenario === 'medical') {
+          state.alertMsg = '注意：你清楚兩者同樣重要，但情境只檢視醫療；請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。';
+          state.showAppMode = 'med';
+        } else if (state.step1Focus === 'both' && state.step2Scenario === 'ci') {
+          state.alertMsg = '注意：你清楚兩者同樣重要，但情境只檢視財務；請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。';
+          state.showAppMode = 'ci';
+        }
       }
 
       var ciLabelText = state.targetRole === 'child' ? '父母停工照護及康復缺口：' : '收入失去／中斷生活儲備缺口：';
       var summaryHtml = `
-        <div style="margin-bottom:8px;">🎯 <strong>最希望得到／守護：</strong>${state.step1RawText || '全面健康保障'}</div>
+        <div style="margin-bottom:8px;">🎯 <strong>最希望得到／守護：</strong>${state.step1RawText}</div>
         <div style="margin-bottom:8px;">🛡 <strong>最不想失去／妥協：</strong>${lossText}</div>
         <div style="margin-bottom:8px;">🏥 <strong>醫療費用直接衝擊缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Math.round(state.finalMedGap).toLocaleString()}</span> ${state.hasPersonalMed === 'no' ? '<span class="med-sub-notice">（未建立第二層個人醫保防線）</span>' : ''}</div>
         <div style="margin-top:8px;">💰 <strong>${ciLabelText}</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Number(state.ciNetGap).toLocaleString()}</span> (已扣除現有 HK$ ${Number(state.ciExisting).toLocaleString()})</div>
         ${state.alertMsg ? `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>` : ''}`;
       block.innerHTML = summaryHtml;
 
-      // 4. 正確安全的 URL 組合引擎 (修復 404 問題)
+      // 4. 正確安全的 URL 組合引擎
       function buildCleanUrl(baseUrl, paramsObj) {
         var cleanBase = baseUrl.trim().replace(/\/+$/, '');
         var queryParts = [];
@@ -979,12 +1020,12 @@
           </div>
         </a>`;
 
-      // 依據用戶情境精準呈現對應按鈕
-      if (state.step2Scenario === 'medical') {
+      // 依照規則嚴格呈現按鈕
+      if (state.showAppMode === 'med') {
         solutionDesc.innerText = '因應你最關注醫療費用的直接衝擊，建議優先進入醫療分析工具填補自付差額：';
         solutionButtonsArea.innerHTML = btnMedical;
         solutionButtonsArea.style.gridTemplateColumns = '1fr';
-      } else if (state.step2Scenario === 'ci') {
+      } else if (state.showAppMode === 'ci') {
         solutionDesc.innerText = '因應你最擔憂收入中斷或照護基金，建議優先進入危疾規劃工具計算生活儲備：';
         solutionButtonsArea.innerHTML = btnCI;
         solutionButtonsArea.style.gridTemplateColumns = '1fr';
@@ -996,7 +1037,6 @@
     }
 
     document.addEventListener('click', function(e) {
-      // 模式選擇
       var roleCard = e.target.closest('[data-role-btn]');
       if (roleCard) {
         document.querySelectorAll('[data-role-btn]').forEach(rc => rc.classList.remove('selected'));
@@ -1006,7 +1046,6 @@
         return;
       }
 
-      // 單選題
       var choiceBtn = e.target.closest('.choice-btn');
       if (choiceBtn && choiceBtn.dataset.stepChoice) {
         var pCard = choiceBtn.closest('.card');
@@ -1025,7 +1064,6 @@
         return;
       }
 
-      // 多選題
       var gridBtn = e.target.closest('.grid-btn');
       if (gridBtn) {
         gridBtn.classList.toggle('selected');
@@ -1036,7 +1074,6 @@
         return;
       }
 
-      // 導航
       var navBtn = e.target.closest('[data-nav-action]');
       if (navBtn) {
         var action = navBtn.dataset.navAction;
@@ -1052,6 +1089,9 @@
           }
           if (state.currentStep < state.totalSteps) {
             state.currentStep++;
+            if (state.currentStep === 3) {
+              applyVisibilityStep3();
+            }
             if (state.currentStep === state.totalSteps) {
               updateSummary();
             }
@@ -1060,6 +1100,9 @@
         } else if (action === 'prev') {
           if (state.currentStep > 0) {
             state.currentStep--;
+            if (state.currentStep === 3) {
+              applyVisibilityStep3();
+            }
             updatePageCounter();
           }
         }
@@ -1090,11 +1133,11 @@
 
     function syncDatabase() {
       var syncDot = document.getElementById('syncDot');
-      var cached = localStorage.getItem('HEALTH_PLAN_DB_V4');
+      var cached = localStorage.getItem('HEALTH_PLAN_DB_V5');
       if (cached) {
         try {
           db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.1.5');
+          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.1.6');
           renderApp();
         } catch(err) { console.error(err); }
       }
@@ -1104,8 +1147,8 @@
         .then(remote => {
           if (remote && remote.status === 'success') {
             db = remote;
-            localStorage.setItem('HEALTH_PLAN_DB_V4', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.1.5');
+            localStorage.setItem('HEALTH_PLAN_DB_V5', JSON.stringify(remote));
+            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.1.6');
             renderApp();
             if (syncDot) syncDot.style.background = '#22c55e';
           }
