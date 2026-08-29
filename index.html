@@ -1,1393 +1,418 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.2.3</title>
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#1e3a8a">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="HealthPlan">
+  <title>Health Protection Plan v1.2.4</title>
+  
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta name="Expires" content="0">
+  <meta name="theme-color" content="#1a3a6e">
+  
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&display=swap');
     :root {
-      --primary: #1e3a8a;
+      --primary: #1a3a6e;
       --primary-light: #eff6ff;
       --accent: #d97706;
       --accent-light: #fffbeb;
       --danger: #dc2626;
       --danger-light: #fef2f2;
       --warning-bg: #fef3c7;
-      --warning-border: #fcd34d;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-sub: #64748b;
       --border: #cbd5e1;
       --pink-border: #f8d7da;
-      --radius: 16px;
+      --radius: 14px;
+      --elite-color: #b9770e;
+      --wise-color: #0056b3;
+      --flexi-color: #c62828;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Microsoft JhengHei", sans-serif;
-      -webkit-tap-highlight-color: transparent;
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Noto Sans HK', sans-serif; background-color: #eef2f5; color: #333; margin: 0; padding: 15px; }
+    
+    .app-shell { max-width: 860px; margin: 0 auto; }
+    
+    .header-version-bar {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+      font-size: 13px; font-weight: 700; color: #64748b;
     }
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 24px 16px;
+    .v-badge {
+      font-size: 11px; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 10px; cursor: pointer;
     }
-    .container {
-      width: 100%;
-      max-width: 640px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    #sync-status-badge {
+      font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; background: #eee; color: #666;
     }
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: var(--text-sub);
+    .status-ok { background: #d4edda !important; color: #155724 !important; }
+    
+    .stage-card {
+      background: #fff; border-radius: var(--radius); padding: 26px 20px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.06); display: none; margin-bottom: 20px;
     }
-    .version-tag {
-      font-size: 11px;
-      background: #e2e8f0;
-      color: #475569;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-weight: 800;
-      margin-left: 6px;
-      cursor: pointer;
-    }
-    .role-badge {
-      font-size: 11.5px;
-      font-weight: 800;
-      padding: 3px 10px;
-      border-radius: 12px;
-      background: #e0e7ff;
-      color: #3730a3;
-    }
-    .progress-track {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .progress-step {
-      height: 6px;
-      flex: 1;
-      background: var(--border);
-      border-radius: 999px;
-      transition: background 0.3s ease;
-    }
-    .progress-step.active {
-      background: var(--primary);
-    }
-    .card {
-      display: none;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-    }
-    .card.active {
-      display: block;
-      animation: fadeIn 0.25s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .tag {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--primary);
-      background: var(--primary-light);
-      padding: 4px 10px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-    h1 {
-      font-size: 22px;
-      font-weight: 800;
-      line-height: 1.4;
-      margin-bottom: 8px;
-      color: var(--text-main);
-    }
-    p.subtitle {
-      font-size: 14px;
-      color: var(--text-sub);
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-    .role-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .role-card {
-      border: 2px dashed var(--pink-border);
-      border-radius: 14px;
-      padding: 20px 14px;
-      background: #ffffff;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .role-card:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-    .role-card.selected {
-      border-color: var(--primary);
-      border-style: solid;
-      background: var(--primary-light);
-      box-shadow: 0 0 0 1.5px var(--primary);
-    }
-    .role-emoji { font-size: 38px; margin-bottom: 8px; }
-    .role-title { font-size: 17px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
-    .role-subtitle { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
-    .role-desc { font-size: 11.5px; color: var(--text-sub); line-height: 1.4; }
-    .dual-frontline-highlight {
-      background: var(--danger-light);
-      border: 1.5px solid #fecaca;
-      border-left: 4px solid var(--danger);
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 13.5px;
-      color: var(--danger);
-      line-height: 1.5;
-      font-weight: 600;
-    }
-    .option-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .stage-card.active { display: block; animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .stage-tag { display: inline-block; font-size: 12px; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 8px; margin-bottom: 12px; }
+    .stage-title { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1.4; margin: 0 0 10px 0; }
+    .stage-desc { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 18px; }
+    
+    .choice-list { display: flex; flex-direction: column; gap: 10px; }
     .choice-btn {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      text-align: left;
-      width: 100%;
-      padding: 16px 18px;
-      background: var(--card-bg);
-      border: 2px dashed var(--pink-border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      display: flex; flex-direction: column; gap: 4px; text-align: left; width: 100%; padding: 15px 18px;
+      background: #fff; border: 2px dashed var(--pink-border); border-radius: 12px; cursor: pointer; transition: 0.2s;
     }
     .choice-btn * { pointer-events: none; }
     .choice-btn:hover { border-color: var(--primary); background: var(--primary-light); }
-    .choice-btn.selected {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      border-style: solid;
-      box-shadow: 0 0 0 1px var(--primary);
+    .choice-btn.selected { background: var(--primary-light); border-color: var(--primary); border-style: solid; box-shadow: 0 0 0 1px var(--primary); }
+    .choice-btn .c-title { font-size: 15px; font-weight: 800; color: #2c3e50; }
+    .choice-btn .c-desc { font-size: 13px; color: #7f8c8d; }
+    
+    .nav-btn-group { display: flex; gap: 10px; margin-top: 22px; }
+    .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; flex: 1; text-align: center; }
+    .btn-secondary { background: #f1f5f9; border: 1px solid var(--border); color: #333; padding: 14px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    
+    select, input[type="text"], input[type="number"] {
+      width: 100%; padding: 10px; font-size: 14.5px; border-radius: 8px; border: 1.5px dashed var(--pink-border);
+      background: #fff; font-weight: 700; color: #333; outline: none; margin-top: 5px; box-sizing: border-box;
     }
-    .choice-btn .title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
+    
+    .card-box {
+      background: #ffffff; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px;
     }
-    .choice-btn .desc {
-      font-size: 13px;
-      color: var(--text-sub);
-      line-height: 1.4;
+    .card-box-header {
+      font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
     }
-    .section-block {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      margin-top: 16px;
+    .stat-grid-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 12px; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13.5px; }
+    .stat-row.total { border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px; font-weight: 900; font-size: 15.5px; }
+    
+    .gap-alert-card {
+      border: 2px solid var(--danger); border-radius: 12px; padding: 16px; margin-top: 16px; background: #fff5f5; text-align: center;
     }
-    .section-block h2 {
-      font-size: 17px;
-      font-weight: 800;
-      margin-bottom: 14px;
-    }
-    .defense-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      margin-top: 12px;
-    }
-    .defense-card h3 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 10px;
-    }
-    .input-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-bottom: 8px;
-    }
-    label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-sub);
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 2px dashed var(--pink-border);
-      background: #ffffff;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-main);
-      outline: none;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-    .stat-display {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .stat-box {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: 10px;
-    }
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-    .stat-value {
-      font-size: 17px;
-      font-weight: 800;
-      margin-top: 4px;
-      color: var(--text-main);
-    }
-    .stat-value.highlight { color: var(--danger); }
-    .grid-2x2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
-    }
-    .grid-btn {
-      padding: 18px;
-      text-align: center;
-      border-radius: 12px;
-      border: 2px dashed var(--pink-border);
-      background: var(--card-bg);
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      line-height: 1.5;
-      transition: all 0.2s ease;
-    }
-    .grid-btn * { pointer-events: none; }
-    .grid-btn.selected {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      border-style: solid;
-      box-shadow: 0 0 0 1px var(--primary);
-    }
-    .btn-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-    }
-    .btn {
-      padding: 14px 20px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-primary {
-      background: #0f172a;
-      color: #ffffff;
-      flex: 1;
-    }
-    .btn-secondary {
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      color: var(--text-main);
-    }
-    .solution-group {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-top: 16px;
-    }
-    .solution-btn {
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      font-size: 15px;
-      font-weight: 800;
-      cursor: pointer;
-      text-align: left;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      transition: transform 0.1s ease;
-    }
-    .solution-btn:active {
-      transform: scale(0.98);
-    }
-    .solution-btn img {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-    .solution-btn-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .solution-btn-text .app-name {
-      font-size: 15px;
-      font-weight: 800;
-    }
-    .solution-btn-text .app-action {
-      font-size: 12px;
-      font-weight: 600;
-      opacity: 0.8;
-    }
-    .solution-btn.med {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1e40af;
-    }
-    .solution-btn.ci {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #991b1b;
-    }
-    .thought-card {
-      background: var(--warning-bg);
-      border: 1.5px solid var(--warning-border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #78350f;
-    }
-    .frontline-card-red {
-      background: var(--danger-light);
-      border: 1.5px solid #fecaca;
-      border-left: 4px solid var(--danger);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      font-size: 13.5px;
-      line-height: 1.6;
-      color: var(--danger);
-      font-weight: 600;
-    }
-    .conflict-alert {
-      background: #ffffff;
-      border: 1.5px dashed var(--danger);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-top: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--danger);
-      line-height: 1.5;
-    }
-    .sync-status-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #22c55e;
-      margin-right: 6px;
+    .gap-alert-card .gap-title { font-size: 13px; font-weight: 800; color: var(--danger); }
+    .gap-alert-card .gap-amount { font-size: 24px; font-weight: 900; color: var(--danger); margin: 4px 0 0 0; }
+
+    .summary-thought-box {
+      background: #fffdf5; border: 1.5px solid #fde68a; border-radius: 12px; padding: 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.7; color: #92400e;
     }
 
-    /* 管理員後台 Modal */
-    #adminModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.7);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
+    /* 05頁 中間大病兩條戰線 (綠色框) */
+    .battle-line-box {
+      background: #f0fdf4; border: 1.5px solid #4ade80; border-radius: 12px; padding: 16px; margin: 16px 0; color: #166534; line-height: 1.7; font-size: 14px;
     }
-    .admin-card {
-      background: #ffffff;
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .admin-header {
-      padding: 16px 20px;
-      background: #0f172a;
-      color: #ffffff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .admin-body {
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .admin-section-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--primary);
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 4px;
-      margin-top: 8px;
-    }
-    .admin-item {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .admin-footer {
-      padding: 14px 20px;
-      background: #f1f5f9;
-      display: flex;
-      gap: 10px;
-      border-top: 1px solid #e2e8f0;
+    .battle-line-box strong { color: #15803d; font-weight: 800; }
+
+    .danger-warning-box {
+      background: #fff5f5; border: 1.5px dashed var(--danger); border-radius: 12px; padding: 14px; margin: 14px 0; font-size: 13.5px; line-height: 1.6; color: var(--danger); font-weight: 700;
     }
 
-    @media (max-width: 520px) {
-      .input-grid, .stat-display, .grid-2x2, .solution-group, .role-grid {
-        grid-template-columns: 1fr;
-      }
+    /* 05頁 底部危疾 App 按鈕 (藍色框) */
+    .cia-app-btn {
+      display: flex; align-items: center; gap: 14px; background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 12px; padding: 14px 16px; margin-top: 12px; cursor: pointer; transition: 0.2s ease; text-decoration: none;
+    }
+    .cia-app-btn:hover {
+      background: #dbeafe; border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+    .cia-app-btn-icon {
+      width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
+    }
+    .cia-app-btn-text h4 {
+      margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #1e3a8a;
+    }
+    .cia-app-btn-text p {
+      margin: 0; font-size: 13px; color: #2563eb; font-weight: 600;
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="header-bar">
-    <div style="display:flex; align-items:center;">
-      <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
-      <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion" title="點擊開啟後台">v1.2.3</span>
+<div class="app-shell">
+  <div class="header-version-bar">
+    <div>
+      <span>AVA HEALTH PROTECTION</span>
+      <span class="v-badge">v1.2.4</span>
+      <span id="role-tag-display" style="font-size:11px; font-weight:bold; background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; margin-left:6px;">👨‍👩‍👧 成人模式</span>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
-      <button type="button" id="btnOpenAdmin" style="background:none; border:none; font-size:16px; cursor:pointer;" title="後台管理">⚙️</button>
-      <span id="pageCounter">00 / 05</span>
+    <div id="sync-status-badge">🔄 連接雲端...</div>
+  </div>
+
+  <!-- 01 角色設定 -->
+  <div class="stage-card active" id="stage-hp-1">
+    <span class="stage-tag">01 ｜ 對象與核心</span>
+    <h2 class="stage-title">為邊個進行健康保障檢視？</h2>
+    <p class="stage-desc">請選擇對象以載入專屬的醫療與保障模型：</p>
+    <div class="choice-list">
+      <button type="button" class="choice-btn selected" id="btnRoleAdult" onclick="selectRole('adult')">
+        <span class="c-title">👨‍👩‍👧 自己／成人家人</span>
+        <span class="c-desc">檢視私院手術、公司團體醫保銜接與離職退休防線。</span>
+      </button>
+      <button type="button" class="choice-btn" id="btnRoleChild" onclick="selectRole('child')">
+        <span class="c-title">👶 小朋友／子女</span>
+        <span class="c-desc">檢視急性兒科住院、家長陪床、微創手術與教育金防護。</span>
+      </button>
+    </div>
+    <div class="nav-btn-group">
+      <button type="button" class="btn-primary" onclick="goToStage('hp-2')">下一步：設定醫療防線 →</button>
     </div>
   </div>
-  
-  <div class="progress-track" id="mainProgressTrack"></div>
-  <main id="dynamicAppContainer"></main>
-</div>
 
-<!-- 後台管理彈窗 (免密碼直接開啟) -->
-<div id="adminModal">
-  <div class="admin-card">
-    <div class="admin-header">
-      <span style="font-weight:800; font-size:16px;">🛠️ 後台管理系統 (Google Sheet 雙向同步)</span>
-      <button type="button" id="btnCloseAdmin" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✕</button>
+  <!-- 02 醫療防線檢視 -->
+  <div class="stage-card" id="stage-hp-2">
+    <span class="stage-tag">02 ｜ 醫療防線檢視</span>
+    <h2 class="stage-title">你已有的保障，可以幫你走幾遠？</h2>
+    <p class="stage-desc">檢視前線私家醫療與後方生活質素防線：</p>
+
+    <!-- 預計私家醫療費用 -->
+    <div class="card-box">
+      <div class="card-box-header">🏥 醫療防線檢視</div>
+      <label style="font-size:12.5px; font-weight:bold; color:#475569;">預計私家醫療費用 (HK$)：</label>
+      <input type="text" id="inputMedCost" value="500,000" oninput="handleCurrencyInput(this)" onchange="calcMedicalGaps()">
     </div>
-    <div class="admin-body" id="adminBodyContent"></div>
-    <div class="admin-footer">
-      <button type="button" class="btn btn-secondary" id="btnCancelAdmin" style="flex:1;">取消</button>
-      <button type="button" class="btn btn-primary" id="btnSaveAdmin" style="flex:2;">💾 儲存並同步至 Google Sheet</button>
+
+    <!-- 第一道防線：公司醫保 -->
+    <div class="card-box" id="boxCompanyMed">
+      <div class="card-box-header">🏢 第一道防線：公司醫保</div>
+      <label style="font-size:12px; font-weight:bold;">是否有公司醫保？</label>
+      <select id="selectHasCompany" onchange="toggleCompanyMedBox()">
+        <option value="yes">有</option>
+        <option value="no" selected>沒有</option>
+      </select>
+      
+      <div id="companyInputsWrapper" style="display:none; margin-top:10px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:11.5px; font-weight:bold;">預計索償上限 (HK$)：</label>
+            <input type="text" id="inputCompanyLimit" value="400,000" oninput="handleCurrencyInput(this)" onchange="calcMedicalGaps()">
+          </div>
+          <div>
+            <label style="font-size:11.5px; font-weight:bold;">承保百分比 (%)：</label>
+            <input type="number" id="inputCompanyRate" value="80" min="0" max="100" oninput="calcMedicalGaps()">
+          </div>
+        </div>
+        <div class="stat-grid-box">
+          <div class="stat-row">
+            <span>第一層：公司醫保預計賠償：</span>
+            <strong style="color:#059669;" id="txtCompanyPay">HK$ 0</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二道防線：個人醫療保險 (純粹化：上限與賠償率) -->
+    <div class="card-box">
+      <div class="card-box-header">🛡️ 第二道防線：個人醫療保險</div>
+      <label style="font-size:12px; font-weight:bold;">是否有個人醫保？</label>
+      <select id="selectHasPersonal" onchange="togglePersonalMedBox()">
+        <option value="yes" selected>有</option>
+        <option value="no">沒有</option>
+      </select>
+      
+      <div id="personalInputsWrapper" style="margin-top:10px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:11.5px; font-weight:bold;">個人索償上限 (HK$)：</label>
+            <input type="text" id="inputPersonalLimit" value="400,000" oninput="handleCurrencyInput(this)" onchange="calcMedicalGaps()">
+          </div>
+          <div>
+            <label style="font-size:11.5px; font-weight:bold;">承保百分比 (%)：</label>
+            <input type="number" id="inputPersonalRate" value="80" min="0" max="100" oninput="calcMedicalGaps()">
+          </div>
+        </div>
+        <div class="stat-grid-box">
+          <div class="stat-row">
+            <span>第二層：個人醫保預計賠償：</span>
+            <strong style="color:#0056b3;" id="txtPersonalPay">HK$ 320,000</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 醫療總自付缺口金額卡片 -->
+    <div class="gap-alert-card">
+      <div class="gap-title">醫療總自付缺口金額</div>
+      <div class="gap-amount" id="txtTotalGap">HK$ 180,000</div>
+    </div>
+
+    <div class="nav-btn-group">
+      <button type="button" class="btn-secondary" onclick="goToStage('hp-1')">← 上一步</button>
+      <button type="button" class="btn-primary" onclick="goToStage('hp-5')">下一步：評估失去代價與總結 →</button>
+    </div>
+  </div>
+
+  <!-- 05 總結與解決方案 (綠色大病框 + 藍色危疾App按鈕) -->
+  <div class="stage-card" id="stage-hp-5">
+    <span class="stage-tag">05 ｜ 專屬方案方向</span>
+    <h2 class="stage-title">根據你的重視與關注，得出以下總結及缺口</h2>
+
+    <div class="summary-thought-box">
+      💭 <strong>客戶心中想法：</strong> 你最希望得到的是【有需要時，可以即時選擇合適醫療】，這屬於前線的醫療選擇權；但想像情境時你最想避免的卻是【治療期間，家庭財務受到牽動】，這屬於後方的生活財務牽動。
+    </div>
+
+    <!-- 綠色框：大病兩條戰線 -->
+    <div class="battle-line-box">
+      <strong>🚨 「一場大病往往引發兩條戰線」：</strong><br>
+      • <strong>第一條戰線（醫療費用）：</strong>對應【即時高昂治療費用】，需要實報實銷的醫保覆蓋；<br>
+      • <strong>第二條戰線（收入中斷）：</strong>對應【治療期間，家庭財務受到牽動】，需要充足危疾現金流作後方支撐，避免停工時生活與照護受牽動。
+    </div>
+
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:14px; font-size:14px; line-height:1.9;">
+      <div>🎯 <strong>最希望得到/守護：</strong> 有需要時，可以即時選擇合適醫療</div>
+      <div>🛡️ <strong>最不想失去/妥協：</strong> 退休儲備進度</div>
+      <div>💰 <strong>收入失去/中斷生活儲備缺口：</strong> <strong style="color:var(--danger); font-size:16px;">約 HK$ 1,140,000</strong> <span style="font-size:12px; color:#666;">(已扣除現有 HK$ 300,000)</span></div>
+    </div>
+
+    <div class="danger-warning-box">
+      ⚠️ <strong>注意：</strong>你首要重視醫療選擇，但情境未檢視醫療防線；請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3 style="font-size:16px; font-weight:800; color:var(--primary); margin-bottom:6px;">💡 解決方案</h3>
+      <p style="font-size:13px; color:#666; margin:0 0 10px 0;">因應你最擔憂收入中斷或照護基金，建議優先進入危疾規劃工具計算生活儲備：</p>
+
+      <!-- 藍色按鈕：危疾規劃 App -->
+      <div onclick="openCiaPlanner()" class="cia-app-btn">
+        <div style="font-size:28px;">☂️</div>
+        <div class="cia-app-btn-text">
+          <h4>危疾規劃 App</h4>
+          <p>解決生活 / 照護儲備缺口 →</p>
+        </div>
+      </div>
+
+      <!-- 進入 Medical Planner 對比按鈕 -->
+      <button type="button" class="btn-primary" onclick="proceedToMedicalPlanner()" style="width:100%; margin-top:10px;">
+        進入 Medical 醫療專屬方案對比 →
+      </button>
+    </div>
+
+    <div class="nav-btn-group">
+      <button type="button" class="btn-secondary" onclick="goToStage('hp-2')">← 返回防線檢視</button>
     </div>
   </div>
 </div>
 
 <script>
-  (function() {
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwiLwLfOhe_R0rwDpkhSPJz_qBdOchyEozTIg7biPfJxkZudjdUgPKjeQEGYSnuiTHG/exec";
-
-    var state = {
-      targetRole: 'adult',
-      currentStep: 0,
-      totalSteps: 5,
-      rolePages: [],
-      step1Focus: null,
-      step1RawText: '',
-      step2Scenario: null,
-      step2RawText: '',
-      losses: [],
-      alertMsg: '',
-      showAppMode: 'med',
-      medCost: 200000,
-      companyLimit: 100000,
-      companyRate: 80,
-      companyPay: 0,
-      personalPay: 180000,
-      finalMedGap: 20000,
-      ciTotal: 1440000,
-      ciExisting: 500000,
-      ciNetGap: 940000,
-      hasCompanyMed: 'no',
-      hasPersonalMed: 'yes',
-      ciMonthly: 40000,
-      ciMonths: 36
-    };
-
-    var db = null;
-
-    function parseNum(val) {
-      if (typeof val === 'number') return val;
-      return Number(String(val || '').replace(/,/g, '')) || 0;
-    }
-
-    function cleanKey(val) {
-      if (!val) return '';
-      val = String(val).toLowerCase().trim();
-      if (val.startsWith('med')) return 'medical';
-      if (val.startsWith('ci')) return 'ci';
-      if (val.startsWith('both')) return 'both';
-      if (val.startsWith('any')) return 'any';
-      return val;
-    }
-
-    function initFormatCurrency() {
-      document.querySelectorAll('.format-currency').forEach(function(input) {
-        input.addEventListener('input', function() {
-          var rawVal = this.value.replace(/,/g, '').replace(/[^\d]/g, '');
-          if (rawVal === '') { this.value = ''; return; }
-          this.value = Number(rawVal).toLocaleString();
-        });
-        input.addEventListener('blur', function() {
-          if (this.value === '') this.value = '0';
-        });
-      });
-    }
-
-    function renderApp() {
-      if (!db || !db.pages) return;
-      var container = document.getElementById('dynamicAppContainer');
-      container.innerHTML = '';
-
-      state.rolePages = db.pages.filter(p => p.role === state.targetRole).sort((a,b) => a.stepOrder - b.stepOrder);
-      state.totalSteps = state.rolePages.length;
-
-      var track = document.getElementById('mainProgressTrack');
-      track.innerHTML = '';
-      for (var s = 0; s <= state.totalSteps; s++) {
-        var stepDiv = document.createElement('div');
-        stepDiv.className = 'progress-step' + (s <= state.currentStep ? ' active' : '');
-        stepDiv.id = 'pstep_' + s;
-        track.appendChild(stepDiv);
-      }
-
-      // STEP 0
-      var p0Html = `
-        <section class="card ${state.currentStep === 0 ? 'active' : ''}" id="stepCard_0">
-          <span class="tag">健康守護 ｜ 入口</span>
-          <h1>今日，我哋想守護邊一位？</h1>
-          <p class="subtitle">選擇本次規劃對象，系統將自動調整專屬問題情境與防線分析：</p>
-          <div class="role-grid">
-            <div class="role-card ${state.targetRole === 'adult' ? 'selected' : ''}" data-role-btn="adult">
-              <div class="role-emoji">👨‍👩‍👧</div>
-              <div class="role-title">成人</div>
-              <div class="role-subtitle">守護自己</div>
-              <div class="role-desc">工作／收入／家庭責任<br>維持生活水準與家庭資產防線</div>
-            </div>
-            <div class="role-card ${state.targetRole === 'child' ? 'selected' : ''}" data-role-btn="child">
-              <div class="role-emoji">👶</div>
-              <div class="role-title">小朋友</div>
-              <div class="role-subtitle">守護孩子</div>
-              <div class="role-desc">健康／成長／教育規劃<br>確保黃金治療與父母停工照護基金</div>
-            </div>
-          </div>
-          <div class="btn-group">
-            <button type="button" class="btn btn-primary" data-nav-action="next">開始健康防線探索 →</button>
-          </div>
-        </section>`;
-      container.insertAdjacentHTML('beforeend', p0Html);
-
-      // STEP 1 - 5
-      state.rolePages.forEach(function(page, idx) {
-        var stepNum = idx + 1;
-        var opts = db.options.filter(o => o.pageId === page.pageId).sort((a,b) => a.order - b.order);
-        var pageHtml = '';
-
-        if (page.pageType === '單選題') {
-          var optButtons = '';
-          opts.forEach(function(o) {
-            optButtons += `
-              <button type="button" class="choice-btn" data-step-choice="${stepNum}" data-opt-key="${o.optionKey}" data-title-text="${o.title}">
-                <span class="title">${o.icon ? o.icon + ' ' : ''}${o.title}</span>
-                <span class="desc">${o.desc || ''}</span>
-              </button>`;
-          });
-
-          pageHtml = `
-            <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
-              <span class="tag">${page.tagName}</span>
-              <h1>${page.title}</h1>
-              ${page.subtitle.includes('🚨') ? `<div class="dual-frontline-highlight">${page.subtitle}</div>` : `<p class="subtitle">${page.subtitle}</p>`}
-              <div class="option-list">${optButtons}</div>
-              <div class="btn-group">
-                <button type="button" class="btn btn-secondary" data-nav-action="prev">← 返回</button>
-                <button type="button" class="btn btn-primary" data-nav-action="next">下一步 →</button>
-              </div>
-            </section>`;
-
-        } else if (page.pageType === '試算頁') {
-          var isChild = state.targetRole === 'child';
-          var defaultMed = isChild ? (db.config["兒童預設醫療費"] || 200000) : (db.config["成人預設醫療費"] || 200000);
-          var defaultMonthly = isChild ? (db.config["兒童預設每月照護"] || 30000) : (db.config["成人預設每月開支"] || 40000);
-          var defaultMonths = isChild ? (db.config["兒童預設陪伴月數"] || 24) : (db.config["成人預設休養月數"] || 36);
-          var defaultCiExist = isChild ? (db.config["兒童預設現有危疾"] || 0) : (db.config["成人預設現有危疾"] || 500000);
-
-          pageHtml = `
-            <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
-              <span class="tag">${page.tagName}</span>
-              <h1>${page.title}</h1>
-              <p class="subtitle">${page.subtitle}</p>
-              
-              <div class="section-block" id="blockMedical">
-                <h2>🏥 醫療防線檢視</h2>
-                <div class="form-group" style="background:#ffffff; padding:12px; border:1.5px solid var(--primary); border-radius:10px;">
-                  <label style="color:var(--primary); font-size:13px;">預計私家醫療費用 (HK$)</label>
-                  <input type="text" id="medicalCost" value="${Number(defaultMed).toLocaleString()}" class="format-currency" style="font-size:16px; font-weight:800;">
-                </div>
-                
-                ${!isChild ? `
-                <div class="defense-card" id="cardCompanyMed">
-                  <h3>第一道防線：公司醫保</h3>
-                  <div class="form-group">
-                    <label>是否有公司醫保？</label>
-                    <select id="hasCompanyMed">
-                      <option value="yes">有</option>
-                      <option value="no" selected>沒有</option>
-                    </select>
-                  </div>
-                  <div id="companyMedDetails" style="display:none;">
-                    <div class="input-grid">
-                      <div class="form-group">
-                        <label>預計索償上限 (HK$)</label>
-                        <input type="text" id="companyLimit" value="100,000" class="format-currency">
-                      </div>
-                      <div class="form-group">
-                        <label>承保百分比 (%)</label>
-                        <input type="number" id="companyRate" value="80" min="0" max="100">
-                      </div>
-                    </div>
-                    <div class="stat-box" style="margin-top: 6px;">
-                      <div class="stat-label">第一層：公司醫保預計賠償</div>
-                      <div class="stat-value" id="companyPayDisplay">HK$ 0</div>
-                    </div>
-                  </div>
-                </div>` : ''}
-                
-                <div class="defense-card">
-                  <h3>${isChild ? '🛡️ 兒童專屬醫療防線（實報實銷）' : '第二道防線：個人醫療保險'}</h3>
-                  <div class="form-group">
-                    <label>是否有個人醫保？</label>
-                    <select id="hasPersonalMed">
-                      <option value="yes" selected>有</option>
-                      <option value="no">沒有</option>
-                    </select>
-                  </div>
-                  <div id="personalMedDetails">
-                    <div class="form-group">
-                      <label>個人醫保類型</label>
-                      <select id="personalType">
-                        <option value="full" selected>全數索償（自付額模式）</option>
-                        <option value="trad">傳統索償（設細項限額）</option>
-                      </select>
-                    </div>
-                    <div id="personalFullGroup">
-                      <div class="form-group">
-                        <label>每年自付額 (Deductible HK$)</label>
-                        <input type="text" id="personalDeductible" value="20,000" class="format-currency">
-                      </div>
-                    </div>
-                    <div id="personalTradGroup" style="display:none;">
-                      <div class="input-grid">
-                        <div class="form-group">
-                          <label>個人索償上限 (HK$)</label>
-                          <input type="text" id="personalTradLimit" value="80,000" class="format-currency">
-                        </div>
-                        <div class="form-group">
-                          <label>承保百分比 (%)</label>
-                          <input type="number" id="personalTradRate" value="80" min="0" max="100">
-                        </div>
-                      </div>
-                    </div>
-                    <div class="stat-box" style="margin-top: 6px;">
-                      <div class="stat-label">個人醫保預計賠償</div>
-                      <div class="stat-value" id="personalPayDisplay">HK$ 180,000</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="stat-display" style="grid-template-columns: 1fr; margin-top: 14px;">
-                  <div class="stat-box" style="border: 2px solid var(--danger);">
-                    <div class="stat-label" style="font-weight:700; color:var(--danger);">醫療總自付缺口金額</div>
-                    <div class="stat-value highlight" style="font-size:22px;" id="totalMedGapDisplay">HK$ 20,000</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="section-block" id="blockCI">
-                <h2>${isChild ? '🧸 兒童重大疾病父母照護與康復防線' : '🛡 重大疾病生活質素防線'}</h2>
-                <div class="input-grid">
-                  <div class="form-group">
-                    <label>${isChild ? '每月父母停工照護及家庭開支 (HK$)' : '每月家庭必要開支 (HK$)'}</label>
-                    <input type="text" id="ciMonthly" value="${Number(defaultMonthly).toLocaleString()}" class="format-currency">
-                  </div>
-                  <div class="form-group">
-                    <label>${isChild ? '預計專職陪伴照護時間 (月)' : '休養中斷收入時間 (月)'}</label>
-                    <input type="number" id="ciMonths" value="${defaultMonths}" min="6" max="120">
-                  </div>
-                </div>
-                <div class="defense-card">
-                  <h3>${isChild ? '現有兒童危疾及照護儲備' : '現有危疾生活防線'}</h3>
-                  <div class="form-group">
-                    <label>現有危疾保障保額 (HK$)</label>
-                    <input type="text" id="existingCI" value="${Number(defaultCiExist).toLocaleString()}" class="format-currency">
-                  </div>
-                </div>
-                <div class="stat-display">
-                  <div class="stat-box">
-                    <div class="stat-label">${isChild ? '所需停工陪伴及康復總基金' : '所需生活總儲備'}</div>
-                    <div class="stat-value" id="ciTotalDisplay">HK$ 0</div>
-                  </div>
-                  <div class="stat-box" style="border: 1.5px solid var(--danger); background: var(--danger-light);">
-                    <div class="stat-label" style="color:var(--danger); font-weight:700;">${isChild ? '所需建立之全新守護防線' : '扣除現有保障後淨缺口'}</div>
-                    <div class="stat-value highlight" id="ciNetGapDisplay">HK$ 0</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="btn-group">
-                <button type="button" class="btn btn-secondary" data-nav-action="prev">← 返回</button>
-                <button type="button" class="btn btn-primary" data-nav-action="next">下一步：評估失去代價 →</button>
-              </div>
-            </section>`;
-
-        } else if (page.pageType === '多選題') {
-          var gridButtons = '';
-          opts.forEach(function(o) {
-            gridButtons += `
-              <button type="button" class="grid-btn" data-loss-desc="${o.title}">${o.icon ? o.icon + '<br>' : ''}${o.title}</button>`;
-          });
-
-          pageHtml = `
-            <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
-              <span class="tag">${page.tagName}</span>
-              <h1>${page.title}</h1>
-              <p class="subtitle">${page.subtitle}</p>
-              <div class="grid-2x2">${gridButtons}</div>
-              <div class="btn-group">
-                <button type="button" class="btn btn-secondary" data-nav-action="prev">← 返回</button>
-                <button type="button" class="btn btn-primary" data-nav-action="next">下一步：解決方案 →</button>
-              </div>
-            </section>`;
-
-        } else if (page.pageType === '總結頁') {
-          pageHtml = `
-            <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
-              <span class="tag">${page.tagName}</span>
-              <h1>${page.title}</h1>
-              <div id="thoughtBox"></div>
-              <div id="frontlineBox"></div>
-              <div class="section-block" id="summaryBlock" style="line-height: 1.8; font-size: 14px;"></div>
-              <div class="section-block" style="background:#ffffff; border:1.5px solid var(--border);">
-                <h3 style="font-size:16px; color:var(--primary); margin-bottom:8px;">💡 解決方案</h3>
-                <p id="solutionDesc" style="font-size:13px; color:var(--text-sub); line-height:1.6; margin-bottom:14px;"></p>
-                <div class="solution-group" id="solutionButtonsArea"></div>
-              </div>
-              <div class="btn-group" style="margin-top: 16px;">
-                <button type="button" class="btn btn-secondary" data-nav-action="prev">← 返上一頁</button>
-              </div>
-            </section>`;
-        }
-
-        container.insertAdjacentHTML('beforeend', pageHtml);
-      });
-
-      initFormatCurrency();
-      updatePageCounter();
-      calculate();
-    }
-
-    function updatePageCounter() {
-      var badge = document.getElementById('topRoleBadge');
-      if (badge) badge.innerText = state.targetRole === 'child' ? '👶 兒童模式' : '👨‍👩‍👧 成人模式';
-      var counter = document.getElementById('pageCounter');
-      if (counter) counter.innerText = '0' + state.currentStep + ' / 0' + state.totalSteps;
-      for (var s = 0; s <= state.totalSteps; s++) {
-        var card = document.getElementById('stepCard_' + s);
-        var pstep = document.getElementById('pstep_' + s);
-        if (card) card.classList.toggle('active', s === state.currentStep);
-        if (pstep) pstep.classList.toggle('active', s <= state.currentStep);
-      }
-      window.scrollTo(0, 0);
-    }
-
-    function applyVisibilityStep3() {
-      var medBlock = document.getElementById('blockMedical');
-      var ciBlock = document.getElementById('blockCI');
-      if (!medBlock || !ciBlock) return;
-      var curStep2 = cleanKey(state.step2Scenario);
-      if (curStep2 === 'medical') {
-        medBlock.style.display = 'block';
-        ciBlock.style.display = 'none';
-      } else if (curStep2 === 'ci') {
-        medBlock.style.display = 'none';
-        ciBlock.style.display = 'block';
-      } else {
-        medBlock.style.display = 'block';
-        ciBlock.style.display = 'block';
-      }
-    }
-
-    function calculate() {
-      var costElem = document.getElementById('medicalCost');
-      if (!costElem) return;
-      var cost = parseNum(costElem.value);
-      state.medCost = cost;
-
-      var compSelect = document.getElementById('hasCompanyMed');
-      var hasComp = compSelect ? compSelect.value === 'yes' : false;
-      state.hasCompanyMed = hasComp ? 'yes' : 'no';
-      var compPay = 0;
-      if (hasComp && state.targetRole === 'adult') {
-        var compLimit = parseNum(document.getElementById('companyLimit').value);
-        var compRate = parseNum(document.getElementById('companyRate').value);
-        state.companyLimit = compLimit;
-        state.companyRate = compRate;
-        compPay = Math.min(cost, compLimit) * (compRate / 100);
-      } else {
-        state.companyLimit = 0;
-        state.companyRate = 0;
-      }
-      state.companyPay = compPay;
-
-      var remainingAfterComp = Math.max(0, cost - compPay);
-      var persSelect = document.getElementById('hasPersonalMed');
-      var hasPers = persSelect ? persSelect.value === 'yes' : true;
-      state.hasPersonalMed = hasPers ? 'yes' : 'no';
-      var persPay = 0;
-      if (hasPers) {
-        var persTypeElem = document.getElementById('personalType');
-        var persType = persTypeElem ? persTypeElem.value : 'full';
-        if (persType === 'full') {
-          var deductible = parseNum(document.getElementById('personalDeductible').value);
-          persPay = Math.max(0, cost - deductible);
-          persPay = Math.min(persPay, remainingAfterComp);
-        } else {
-          var tradLimit = parseNum(document.getElementById('personalTradLimit').value);
-          var tradRate = parseNum(document.getElementById('personalTradRate').value);
-          persPay = Math.min(remainingAfterComp, tradLimit) * (tradRate / 100);
-        }
-      }
-      state.personalPay = persPay;
-
-      var finalGap = Math.max(0, cost - compPay - persPay);
-      state.finalMedGap = finalGap;
-
-      var cpElem = document.getElementById('companyPayDisplay');
-      if (cpElem) cpElem.innerText = 'HK$ ' + Math.round(compPay).toLocaleString();
-      var ppElem = document.getElementById('personalPayDisplay');
-      if (ppElem) ppElem.innerText = 'HK$ ' + Math.round(persPay).toLocaleString();
-      var tmgElem = document.getElementById('totalMedGapDisplay');
-      if (tmgElem) tmgElem.innerText = 'HK$ ' + Math.round(finalGap).toLocaleString();
-
-      var ciM = parseNum(document.getElementById('ciMonthly').value);
-      var ciMonths = parseNum(document.getElementById('ciMonths').value);
-      var ciExist = parseNum(document.getElementById('existingCI').value);
-      state.ciMonthly = ciM;
-      state.ciMonths = ciMonths;
-      state.ciTotal = ciM * ciMonths;
-      state.ciExisting = ciExist;
-      state.ciNetGap = Math.max(0, state.ciTotal - ciExist);
-
-      var ciTotElem = document.getElementById('ciTotalDisplay');
-      if (ciTotElem) ciTotElem.innerText = 'HK$ ' + state.ciTotal.toLocaleString();
-      var ciGapElem = document.getElementById('ciNetGapDisplay');
-      if (ciGapElem) ciGapElem.innerText = 'HK$ ' + state.ciNetGap.toLocaleString();
-    }
-
-    function updateSummary() {
-      var thoughtBox = document.getElementById('thoughtBox');
-      var frontlineBox = document.getElementById('frontlineBox');
-      var block = document.getElementById('summaryBlock');
-      var solutionDesc = document.getElementById('solutionDesc');
-      var solutionButtonsArea = document.getElementById('solutionButtonsArea');
-      if (!thoughtBox || !frontlineBox || !block) return;
-
-      var defaultLoss = state.targetRole === 'child' ? '孩子最佳醫療資源與父母全天候陪伴' : '家庭現有生活質素及既定資產規劃';
-      var lossText = state.losses.length > 0 ? state.losses.join('、') : defaultLoss;
-
-      var curStep1 = cleanKey(state.step1Focus);
-      var curStep2 = cleanKey(state.step2Scenario);
-
-      // 1. 客戶心中想法
-      var thoughtHtml = '';
-      if (curStep1 === 'both') {
-        if (curStep2 === 'medical') {
-          thoughtHtml = `
-            <div class="thought-card">
-              💭 <strong>客戶心中想法：</strong> 你宏觀上清楚<strong>【醫療選擇與家庭財務同樣重要】</strong>；但在實際情境下，你最直接想避開的依然是<strong>【${state.step2RawText}】</strong>，這屬於前線的醫療開支。
-            </div>`;
-        } else if (curStep2 === 'ci') {
-          thoughtHtml = `
-            <div class="thought-card">
-              💭 <strong>客戶心中想法：</strong> 你宏觀上清楚<strong>【醫療選擇與家庭財務同樣重要】</strong>；但在實際情境下，你最直接想避開的依然是<strong>【${state.step2RawText}】</strong>，這屬於後方的生活/照護財務維持。
-            </div>`;
-        } else {
-          thoughtHtml = `
-            <div class="thought-card">
-              💭 <strong>客戶心中想法：</strong> 你清楚<strong>【醫療選擇與家庭財務同樣重要】</strong>，而且在實際情境中<strong>【兩樣都唔想發生】</strong>，追求前線醫療與後方生活的全面防禦。
-            </div>`;
-        }
-      } else if (curStep1 === 'medical' && curStep2 === 'ci') {
-        thoughtHtml = `
-          <div class="thought-card">
-            💭 <strong>客戶心中想法：</strong> 你最希望得到的是<strong>【${state.step1RawText}】</strong>，這屬於<strong>前線的醫療選擇權</strong>；但想像情境時你最想避免的卻是<strong>【${state.step2RawText}】</strong>，這屬於<strong>後方的生活財務牽動</strong>。
-          </div>`;
-      } else if (curStep1 === 'ci' && curStep2 === 'medical') {
-        thoughtHtml = `
-          <div class="thought-card">
-            💭 <strong>客戶心中想法：</strong> 你最希望守護的是<strong>【${state.step1RawText}】</strong>，這其實屬於<strong>後方的長期財務支援</strong>；但想像情境時你最想避免的卻是<strong>【${state.step2RawText}】</strong>，這屬於<strong>前線的私家醫療費用</strong>。
-          </div>`;
-      } else if (curStep1 === 'medical' && curStep2 === 'medical') {
-        thoughtHtml = `
-          <div class="thought-card">
-            💭 <strong>客戶心中想法：</strong> 你最希望得到的是<strong>【${state.step1RawText}】</strong>，情境上最想避免的也是<strong>【${state.step2RawText}】</strong>，焦點高度集中在前線醫療選擇權。
-          </div>`;
-      } else {
-        thoughtHtml = `
-          <div class="thought-card">
-            💭 <strong>客戶心中想法：</strong> 你最希望守護的是<strong>【${state.step1RawText}】</strong>，焦點高度集中在維持後方家庭現金流穩定。
-          </div>`;
-      }
-      thoughtBox.innerHTML = thoughtHtml;
-
-      // 2. 兩條戰線
-      var frontlineHtml = '';
-      var ciLineName = state.targetRole === 'child' ? '第二條戰線（父母停工照護）' : '第二條戰線（收入中斷）';
-      var medText = (curStep2 === 'medical' || curStep2 === 'both') ? state.step2RawText : '即時高昂治療費用';
-      var ciText = (curStep2 === 'ci' || curStep2 === 'both') ? state.step2RawText : lossText;
-
-      frontlineHtml = `
-        <div class="frontline-card-red">
-          🚨 <strong>「一場大病往往引發兩條戰線」</strong>：<br>
-          • <strong>第一條戰線（醫療費用）</strong>：對應<strong>【${medText}】</strong>，需要實報實銷的醫保覆蓋；<br>
-          • <strong>${ciLineName}</strong>：對應<strong>【${ciText}】</strong>，需要充足危疾現金流作後方支撐，避免停工時生活與照護受牽動。
-        </div>`;
-      frontlineBox.innerHTML = frontlineHtml;
-
-      // 3. 雙向規則匹配
-      state.alertMsg = '';
-      state.showAppMode = 'med';
-
-      if (db.rules && db.rules.length > 0) {
-        var matchedRule = db.rules.find(r => cleanKey(r.step1) === curStep1 && cleanKey(r.step2) === curStep2);
-        if (!matchedRule) {
-          matchedRule = db.rules.find(r => (cleanKey(r.step1) === 'any' || cleanKey(r.step1) === curStep1) && cleanKey(r.step2) === curStep2);
-        }
-
-        if (matchedRule) {
-          state.alertMsg = (matchedRule.alertMsg && !matchedRule.alertMsg.includes('無須提醒')) ? matchedRule.alertMsg : '';
-          var rawApp = cleanKey(matchedRule.showApp);
-          if (rawApp === 'both') state.showAppMode = 'both';
-          else if (rawApp === 'ci') state.showAppMode = 'ci';
-          else state.showAppMode = 'med';
-        }
-      }
-
-      // 4. 動態組合第三個框內容
-      var ciLabelText = state.targetRole === 'child' ? '父母停工照護及康復缺口：' : '收入失去／中斷生活儲備缺口：';
-      var summaryHtml = `
-        <div style="margin-bottom:8px;">🎯 <strong>最希望得到／守護：</strong>${state.step1RawText}</div>
-        <div style="margin-bottom:8px;">🛡 <strong>最不想失去／妥協：</strong>${lossText}</div>`;
-
-      if (curStep2 === 'medical' || curStep2 === 'both') {
-        summaryHtml += `<div style="margin-bottom:8px;">🏥 <strong>醫療費用直接衝擊缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Math.round(state.finalMedGap).toLocaleString()}</span> ${state.hasPersonalMed === 'no' ? '<span class="med-sub-notice">（未建立第二層個人醫保防線）</span>' : ''}</div>`;
-      }
-
-      if (curStep2 === 'ci' || curStep2 === 'both') {
-        summaryHtml += `<div style="margin-top:8px;">💰 <strong>${ciLabelText}</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Number(state.ciNetGap).toLocaleString()}</span> (已扣除現有 HK$ ${Number(state.ciExisting).toLocaleString()})</div>`;
-      }
-
-      if (state.alertMsg) {
-        summaryHtml += `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>`;
-      }
-
-      block.innerHTML = summaryHtml;
-
-      // 5. 動態生成乾淨 URL
-      function buildCleanUrl(baseUrl, paramsObj) {
-        var cleanBase = (baseUrl || '').trim().replace(/\/+$/, '');
-        var queryParts = [];
-        for (var k in paramsObj) {
-          if (paramsObj[k] !== undefined && paramsObj[k] !== null && paramsObj[k] !== '') {
-            queryParts.push(encodeURIComponent(k) + '=' + encodeURIComponent(paramsObj[k]));
-          }
-        }
-        return cleanBase + (queryParts.length > 0 ? '?' + queryParts.join('&') : '');
-      }
-
-      var medBase = db.config["醫療App網址"] || "https://ivancww.github.io/medicalclaims";
-      var ciBase = db.config["危疾App網址"] || "https://ivancww.github.io/CIApp";
-
-      var medParams = {
-        cost: state.medCost,
-        hasCompany: state.hasCompanyMed,
-        companyLimit: state.companyLimit,
-        companyRate: state.companyRate,
-        hasPersonal: state.hasPersonalMed,
-        losses: state.losses.join(','),
-        alertMsg: state.alertMsg,
-        focus: state.step1Focus || ''
-      };
-
-      var ciParams = {
-        expense: state.ciMonthly,
-        existing: state.ciExisting,
-        losses: state.losses.join(','),
-        alertMsg: state.alertMsg,
-        focus: state.step1Focus || ''
-      };
-
-      var medUrl = buildCleanUrl(medBase, medParams);
-      var ciUrl = buildCleanUrl(ciBase, ciParams);
-
-      var btnMedical = `
-        <a href="${medUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn med">
-          <img src="https://ivancww.github.io/medicalclaims/icon-192.png" alt="Medical App Logo" onerror="this.style.display='none'">
-          <div class="solution-btn-text">
-            <span class="app-name">醫療分析 App</span>
-            <span class="app-action">解決醫療費用直接衝擊 →</span>
-          </div>
-        </a>`;
-
-      var btnCI = `
-        <a href="${ciUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn ci">
-          <img src="https://ivancww.github.io/CIApp/icon-192.png" alt="CI App Logo" onerror="this.style.display='none'">
-          <div class="solution-btn-text">
-            <span class="app-name">危疾規劃 App</span>
-            <span class="app-action">解決生活/照護儲備缺口 →</span>
-          </div>
-        </a>`;
-
-      if (state.showAppMode === 'med') {
-        solutionDesc.innerText = '因應你最關注醫療費用的直接衝擊，建議優先進入醫療分析工具填補自付差額：';
-        solutionButtonsArea.innerHTML = btnMedical;
-        solutionButtonsArea.style.gridTemplateColumns = '1fr';
-      } else if (state.showAppMode === 'ci') {
-        solutionDesc.innerText = '因應你最擔憂收入中斷或照護基金，建議優先進入危疾規劃工具計算生活儲備：';
-        solutionButtonsArea.innerHTML = btnCI;
-        solutionButtonsArea.style.gridTemplateColumns = '1fr';
-      } else {
-        solutionDesc.innerText = '因應大病的兩條戰線，建議同時檢視前線醫療自付差額與後方生活儲備缺口：';
-        solutionButtonsArea.innerHTML = btnMedical + btnCI;
-        solutionButtonsArea.style.gridTemplateColumns = window.innerWidth <= 520 ? '1fr' : '1fr 1fr';
-      }
-    }
-
-    // ======================== 後台管理 (免密碼直通) ========================
-    function openAdminPanel() {
-      var modal = document.getElementById('adminModal');
-      var body = document.getElementById('adminBodyContent');
-      body.innerHTML = '';
-
-      // 1. 系統設定
-      var secConfig = document.createElement('div');
-      secConfig.innerHTML = `<div class="admin-section-title">⚙️ 系統設定 & 預設金額</div>`;
-      for (const [k, v] of Object.entries(db.config)) {
-        secConfig.innerHTML += `
-          <div class="admin-item">
-            <label>${k}</label>
-            <input type="text" data-admin-config="${k}" value="${v}">
-          </div>`;
-      }
-      body.appendChild(secConfig);
-
-      // 2. 頁面文案
-      var secPages = document.createElement('div');
-      secPages.innerHTML = `<div class="admin-section-title">📄 題目與副標題文案</div>`;
-      db.pages.forEach((p, idx) => {
-        secPages.innerHTML += `
-          <div class="admin-item">
-            <label>【${p.role === 'adult' ? '成人' : '兒童'} - 第 ${p.stepOrder} 步】${p.tagName}</label>
-            <input type="text" placeholder="主標題" data-admin-page-title="${idx}" value="${p.title}">
-            <textarea placeholder="副標題" data-admin-page-sub="${idx}">${p.subtitle}</textarea>
-          </div>`;
-      });
-      body.appendChild(secPages);
-
-      // 3. 選項文案
-      var secOpts = document.createElement('div');
-      secOpts.innerHTML = `<div class="admin-section-title">🔘 選項按鈕文案</div>`;
-      db.options.forEach((o, idx) => {
-        secOpts.innerHTML += `
-          <div class="admin-item">
-            <label>${o.pageId} (${o.optionKey})</label>
-            <div style="display:flex; gap:6px;">
-              <input type="text" style="width:50px;" placeholder="Icon" data-admin-opt-icon="${idx}" value="${o.icon}">
-              <input type="text" style="flex:1;" placeholder="選項標題" data-admin-opt-title="${idx}" value="${o.title}">
-            </div>
-            <input type="text" placeholder="選項說明" data-admin-opt-desc="${idx}" value="${o.desc}">
-          </div>`;
-      });
-      body.appendChild(secOpts);
-
-      modal.style.display = 'flex';
-    }
-
-    function saveAdminPanel() {
-      if (!confirm("確定儲存並將最新文案同步至 Google Sheet？")) return;
-
-      var btnSave = document.getElementById('btnSaveAdmin');
-      btnSave.innerText = "⏳ 正在同步至 Google Sheet...";
-      btnSave.disabled = true;
-
-      document.querySelectorAll('[data-admin-config]').forEach(inp => {
-        db.config[inp.dataset.adminConfig] = inp.value;
-      });
-
-      var curVer = String(db.config["資料版本"] || "1.2.3").split('.');
-      if (curVer.length === 3) {
-        curVer[2] = Number(curVer[2]) + 1;
-        db.config["資料版本"] = curVer.join('.');
-      } else {
-        db.config["資料版本"] = "1.2.4";
-      }
-
-      document.querySelectorAll('[data-admin-page-title]').forEach(inp => {
-        var idx = Number(inp.dataset.adminPageTitle);
-        db.pages[idx].title = inp.value;
-      });
-      document.querySelectorAll('[data-admin-page-sub]').forEach(inp => {
-        var idx = Number(inp.dataset.adminPageSub);
-        db.pages[idx].subtitle = inp.value;
-      });
-
-      document.querySelectorAll('[data-admin-opt-title]').forEach(inp => {
-        var idx = Number(inp.dataset.adminOptTitle);
-        db.options[idx].title = inp.value;
-      });
-      document.querySelectorAll('[data-admin-opt-icon]').forEach(inp => {
-        var idx = Number(inp.dataset.adminOptIcon);
-        db.options[idx].icon = inp.value;
-      });
-      document.querySelectorAll('[data-admin-opt-desc]').forEach(inp => {
-        var idx = Number(inp.dataset.adminOptDesc);
-        db.options[idx].desc = inp.value;
-      });
-
-      fetch(GAS_API_URL, {
-        method: "POST",
-        body: JSON.stringify(db)
-      })
-      .then(res => res.json())
-      .then(res => {
-        alert("✅ 成功同步至 Google Sheet！最新版本號：" + db.config["資料版本"]);
-        localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(db));
-        document.getElementById('appVersion').innerText = 'v' + db.config["資料版本"];
-        document.getElementById('adminModal').style.display = 'none';
-        renderApp();
-      })
-      .catch(err => {
-        alert("❌ 同步失敗，請檢查 GAS 部署權限：" + err);
-      })
-      .finally(() => {
-        btnSave.innerText = "💾 儲存並同步至 Google Sheet";
-        btnSave.disabled = false;
-      });
-    }
-
-    // ======================== 全域事件 ========================
-    document.getElementById('btnOpenAdmin').addEventListener('click', openAdminPanel);
-    document.getElementById('appVersion').addEventListener('click', openAdminPanel);
-    document.getElementById('btnCloseAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
-    document.getElementById('btnCancelAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
-    document.getElementById('btnSaveAdmin').addEventListener('click', saveAdminPanel);
-
-    document.addEventListener('click', function(e) {
-      var roleCard = e.target.closest('[data-role-btn]');
-      if (roleCard) {
-        document.querySelectorAll('[data-role-btn]').forEach(rc => rc.classList.remove('selected'));
-        roleCard.classList.add('selected');
-        state.targetRole = roleCard.dataset.roleBtn;
-        renderApp();
-        return;
-      }
-
-      var choiceBtn = e.target.closest('.choice-btn');
-      if (choiceBtn && choiceBtn.dataset.stepChoice) {
-        var pCard = choiceBtn.closest('.card');
-        pCard.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
-        choiceBtn.classList.add('selected');
-        var optKey = choiceBtn.dataset.optKey;
-        var rawTxt = choiceBtn.dataset.titleText || choiceBtn.querySelector('.title').innerText.replace(/^[^\s]+\s*/, '').replace(/[「」]/g, '');
-        var step = Number(choiceBtn.dataset.stepChoice);
-        if (step === 1) {
-          state.step1Focus = optKey;
-          state.step1RawText = rawTxt;
-        } else if (step === 2) {
-          state.step2Scenario = optKey;
-          state.step2RawText = rawTxt;
-        }
-        return;
-      }
-
-      var gridBtn = e.target.closest('.grid-btn');
-      if (gridBtn) {
-        gridBtn.classList.toggle('selected');
-        state.losses = [];
-        document.querySelectorAll('.grid-btn.selected').forEach(function(b) {
-          state.losses.push(b.dataset.lossDesc || b.innerText);
-        });
-        return;
-      }
-
-      var navBtn = e.target.closest('[data-nav-action]');
-      if (navBtn) {
-        var action = navBtn.dataset.navAction;
-        if (action === 'next') {
-          if (state.currentStep === 1 && !state.step1Focus) {
-            alert('請先點選你最希望得到甚麼'); return;
-          }
-          if (state.currentStep === 2 && !state.step2Scenario) {
-            alert('請先點選你最想避免遇到的情況'); return;
-          }
-          if (state.currentStep === 4 && (!state.losses || state.losses.length === 0)) {
-            alert('請至少點選一項你最不想失去／妥協的項目'); return;
-          }
-          if (state.currentStep < state.totalSteps) {
-            state.currentStep++;
-            if (state.currentStep === 3) {
-              applyVisibilityStep3();
-            }
-            if (state.currentStep === state.totalSteps) {
-              updateSummary();
-            }
-            updatePageCounter();
-          }
-        } else if (action === 'prev') {
-          if (state.currentStep > 0) {
-            state.currentStep--;
-            if (state.currentStep === 3) {
-              applyVisibilityStep3();
-            }
-            updatePageCounter();
-          }
-        }
-      }
-    });
-
-    document.addEventListener('change', function(e) {
-      if (!e.target) return;
-      if (e.target.id === 'hasCompanyMed') {
-        var details = document.getElementById('companyMedDetails');
-        if (details) details.style.display = (e.target.value === 'yes') ? 'block' : 'none';
-      }
-      if (e.target.id === 'hasPersonalMed') {
-        var pDetails = document.getElementById('personalMedDetails');
-        if (pDetails) pDetails.style.display = (e.target.value === 'yes') ? 'block' : 'none';
-      }
-      if (e.target.id === 'personalType') {
-        var isFull = e.target.value === 'full';
-        var fullGrp = document.getElementById('personalFullGroup');
-        var tradGrp = document.getElementById('personalTradGroup');
-        if (fullGrp) fullGrp.style.display = isFull ? 'block' : 'none';
-        if (tradGrp) tradGrp.style.display = isFull ? 'none' : 'block';
-      }
-      calculate();
-    });
-
-    document.addEventListener('input', calculate);
-
-    function syncDatabase() {
-      var syncDot = document.getElementById('syncDot');
-      var cached = localStorage.getItem('HEALTH_PLAN_DB_V10');
-      if (cached) {
-        try {
-          db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.3');
-          renderApp();
-        } catch(err) { console.error(err); }
-      }
-
-      fetch(GAS_API_URL)
-        .then(res => res.json())
-        .then(remote => {
-          if (remote && remote.status === 'success') {
-            db = remote;
-            localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.3');
-            renderApp();
-            if (syncDot) syncDot.style.background = '#22c55e';
-          }
-        })
-        .catch(err => {
-          console.warn('使用快取', err);
-          if (syncDot) syncDot.style.background = '#eab308';
-        });
-    }
-
-    syncDatabase();
-  })();
-</script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then((reg) => {
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
-              }
-            });
-          });
-        })
-        .catch((err) => console.error('Service Worker 註冊失敗:', err));
-    });
+  const MEDICAL_APP_URL = "https://ivancww.github.io/"; 
+  const CIA_APP_URL = "https://ivancww.github.io/";
+
+  var hpState = {
+    role: 'adult',
+    medCost: 500000,
+    hasCompany: false,
+    companyLimit: 400000,
+    companyRate: 80,
+    companyPay: 0,
+    hasPersonal: true,
+    personalLimit: 400000,
+    personalRate: 80,
+    personalPay: 320000,
+    totalGap: 180000,
+    alertMsg: "注意：你已聚焦前線醫療開支，但請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。"
+  };
+
+  function parseNum(val) {
+    if (!val) return 0;
+    return Number(String(val).replace(/[^0-9.]/g, '')) || 0;
   }
+
+  function handleCurrencyInput(input) {
+    var raw = parseNum(input.value);
+    input.value = raw.toLocaleString();
+  }
+
+  function selectRole(role) {
+    hpState.role = role;
+    document.getElementById('btnRoleAdult').classList.toggle('selected', role === 'adult');
+    document.getElementById('btnRoleChild').classList.toggle('selected', role === 'child');
+    document.getElementById('role-tag-display').innerText = (role === 'child') ? '👶 兒童模式' : '👨‍👩‍👧 成人模式';
+    
+    document.getElementById('boxCompanyMed').style.display = (role === 'child') ? 'none' : 'block';
+    calcMedicalGaps();
+  }
+
+  function toggleCompanyMedBox() {
+    var has = document.getElementById('selectHasCompany').value === 'yes';
+    document.getElementById('companyInputsWrapper').style.display = has ? 'block' : 'none';
+    calcMedicalGaps();
+  }
+
+  function togglePersonalMedBox() {
+    var has = document.getElementById('selectHasPersonal').value === 'yes';
+    document.getElementById('personalInputsWrapper').style.display = has ? 'block' : 'none';
+    calcMedicalGaps();
+  }
+
+  function calcMedicalGaps() {
+    var cost = parseNum(document.getElementById('inputMedCost').value) || 500000;
+    hpState.medCost = cost;
+    
+    // 公司醫保
+    var hasComp = document.getElementById('selectHasCompany').value === 'yes' && hpState.role === 'adult';
+    hpState.hasCompany = hasComp;
+    var compLimit = parseNum(document.getElementById('inputCompanyLimit').value);
+    var compRate = Number(document.getElementById('inputCompanyRate').value) || 80;
+    hpState.companyLimit = compLimit;
+    hpState.companyRate = compRate;
+
+    var compPay = 0;
+    if (hasComp && compLimit > 0) {
+      compPay = Math.min(cost, compLimit) * (compRate / 100);
+    }
+    hpState.companyPay = compPay;
+    document.getElementById('txtCompanyPay').innerText = 'HK$ ' + Math.round(compPay).toLocaleString();
+
+    // 個人醫保 (比照公司醫保結構)
+    var hasPers = document.getElementById('selectHasPersonal').value === 'yes';
+    hpState.hasPersonal = hasPers;
+    var persLimit = parseNum(document.getElementById('inputPersonalLimit').value);
+    var persRate = Number(document.getElementById('inputPersonalRate').value) || 80;
+    hpState.personalLimit = persLimit;
+    hpState.personalRate = persRate;
+
+    var remainAfterComp = Math.max(0, cost - compPay);
+    var persPay = 0;
+    if (hasPers && persLimit > 0) {
+      persPay = Math.min(remainAfterComp, persLimit) * (persRate / 100);
+    }
+    hpState.personalPay = persPay;
+    document.getElementById('txtPersonalPay').innerText = 'HK$ ' + Math.round(persPay).toLocaleString();
+
+    // 總自付缺口
+    var totalGap = Math.max(0, cost - compPay - persPay);
+    hpState.totalGap = totalGap;
+    document.getElementById('txtTotalGap').innerText = 'HK$ ' + Math.round(totalGap).toLocaleString();
+  }
+
+  function proceedToMedicalPlanner() {
+    calcMedicalGaps();
+    
+    var queryParams = new URLSearchParams({
+      cost: hpState.medCost,
+      hasCompany: hpState.hasCompany ? 'yes' : 'no',
+      companyLimit: hpState.companyLimit,
+      companyRate: hpState.companyRate,
+      hasPersonal: hpState.hasPersonal ? 'yes' : 'no',
+      persLimit: hpState.personalLimit,
+      persRate: hpState.personalRate,
+      role: hpState.role,
+      alertMsg: hpState.alertMsg
+    });
+
+    window.location.href = MEDICAL_APP_URL + "?" + queryParams.toString();
+  }
+
+  function openCiaPlanner() {
+    window.location.href = CIA_APP_URL;
+  }
+
+  function goToStage(stageId) {
+    document.querySelectorAll('.stage-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('stage-' + stageId).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  window.onload = function() {
+    calcMedicalGaps();
+    document.getElementById('sync-status-badge').className = 'status-ok';
+    document.getElementById('sync-status-badge').innerText = '● 系統已就緒';
+  };
 </script>
 </body>
 </html>
