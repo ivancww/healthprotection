@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.1.6</title>
+  <title>Health Protection Planner v1.2.0</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -439,7 +439,7 @@
     <div style="display:flex; align-items:center;">
       <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion">v1.1.6</span>
+      <span class="version-tag" id="appVersion">v1.2.0</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
@@ -487,6 +487,16 @@
     function parseNum(val) {
       if (typeof val === 'number') return val;
       return Number(String(val || '').replace(/,/g, '')) || 0;
+    }
+
+    function cleanKey(val) {
+      if (!val) return '';
+      val = String(val).toLowerCase().trim();
+      if (val.startsWith('med')) return 'medical';
+      if (val.startsWith('ci')) return 'ci';
+      if (val.startsWith('both')) return 'both';
+      if (val.startsWith('any')) return 'any';
+      return val;
     }
 
     function initFormatCurrency() {
@@ -772,10 +782,11 @@
       var medBlock = document.getElementById('blockMedical');
       var ciBlock = document.getElementById('blockCI');
       if (!medBlock || !ciBlock) return;
-      if (state.step2Scenario === 'medical') {
+      var curStep2 = cleanKey(state.step2Scenario);
+      if (curStep2 === 'medical') {
         medBlock.style.display = 'block';
         ciBlock.style.display = 'none';
-      } else if (state.step2Scenario === 'ci') {
+      } else if (curStep2 === 'ci') {
         medBlock.style.display = 'none';
         ciBlock.style.display = 'block';
       } else {
@@ -862,15 +873,18 @@
       var defaultLoss = state.targetRole === 'child' ? '孩子最佳醫療資源與父母全天候陪伴' : '家庭現有生活質素及既定資產規劃';
       var lossText = state.losses.length > 0 ? state.losses.join('、') : defaultLoss;
 
+      var curStep1 = cleanKey(state.step1Focus);
+      var curStep2 = cleanKey(state.step2Scenario);
+
       // 1. 客戶心中想法
       var thoughtHtml = '';
-      if (state.step1Focus === 'both') {
-        if (state.step2Scenario === 'medical') {
+      if (curStep1 === 'both') {
+        if (curStep2 === 'medical') {
           thoughtHtml = `
             <div class="thought-card">
               💭 <strong>客戶心中想法：</strong> 你宏觀上清楚<strong>【醫療選擇與家庭財務同樣重要】</strong>；但在實際情境下，你最直接想避開的依然是<strong>【${state.step2RawText}】</strong>，這屬於前線的醫療開支。
             </div>`;
-        } else if (state.step2Scenario === 'ci') {
+        } else if (curStep2 === 'ci') {
           thoughtHtml = `
             <div class="thought-card">
               💭 <strong>客戶心中想法：</strong> 你宏觀上清楚<strong>【醫療選擇與家庭財務同樣重要】</strong>；但在實際情境下，你最直接想避開的依然是<strong>【${state.step2RawText}】</strong>，這屬於後方的生活/照護財務維持。
@@ -881,20 +895,20 @@
               💭 <strong>客戶心中想法：</strong> 你清楚<strong>【醫療選擇與家庭財務同樣重要】</strong>，而且在實際情境中<strong>【兩樣都唔想發生】</strong>，追求前線醫療與後方生活的全面防禦。
             </div>`;
         }
-      } else if (state.step1Focus === 'medical' && state.step2Scenario === 'ci') {
+      } else if (curStep1 === 'medical' && curStep2 === 'ci') {
         thoughtHtml = `
           <div class="thought-card">
             💭 <strong>客戶心中想法：</strong> 你最希望得到的是<strong>【${state.step1RawText}】</strong>，這屬於<strong>前線的醫療選擇權</strong>；但想像情境時你最想避免的卻是<strong>【${state.step2RawText}】</strong>，這屬於<strong>後方的生活財務牽動</strong>。
           </div>`;
-      } else if (state.step1Focus === 'ci' && state.step2Scenario === 'medical') {
+      } else if (curStep1 === 'ci' && curStep2 === 'medical') {
         thoughtHtml = `
           <div class="thought-card">
             💭 <strong>客戶心中想法：</strong> 你最希望守護的是<strong>【${state.step1RawText}】</strong>，這其實屬於<strong>後方的長期財務支援</strong>；但想像情境時你最想避免的卻是<strong>【${state.step2RawText}】</strong>，這屬於<strong>前線的私家醫療費用</strong>。
           </div>`;
-      } else if (state.step1Focus === 'medical' && state.step2Scenario === 'medical') {
+      } else if (curStep1 === 'medical' && curStep2 === 'medical') {
         thoughtHtml = `
           <div class="thought-card">
-            💭 <strong>客戶心中想法：</strong> 你最希望得到的是<strong>【${state.step1RawText}】</strong>，焦點高度集中在前線醫療選擇權。
+            💭 <strong>客戶心中想法：</strong> 你最希望得到的是<strong>【${state.step1RawText}】</strong>，情境上最想避免的也是<strong>【${state.step2RawText}】</strong>，焦點高度集中在前線醫療選擇權。
           </div>`;
       } else {
         thoughtHtml = `
@@ -904,55 +918,36 @@
       }
       thoughtBox.innerHTML = thoughtHtml;
 
-      // 2. 兩條戰線
+      // 2. 兩條戰線（修復戰線歸屬）
+      var frontlineHtml = '';
       var ciLineName = state.targetRole === 'child' ? '第二條戰線（父母停工照護）' : '第二條戰線（收入中斷）';
-      var frontlineHtml = `
+      var medText = (curStep2 === 'medical' || curStep2 === 'both') ? state.step2RawText : '即時高昂治療費用';
+      var ciText = (curStep2 === 'ci' || curStep2 === 'both') ? state.step2RawText : lossText;
+
+      frontlineHtml = `
         <div class="frontline-card-red">
           🚨 <strong>「一場大病往往引發兩條戰線」</strong>：<br>
-          • <strong>第一條戰線（醫療費用）</strong>：對應你最擔憂的<strong>【${state.step2RawText || '私家高昂治療費用'}】</strong>，需要實報實銷的醫保覆蓋；<br>
-          • <strong>${ciLineName}</strong>：對應你最想守護的<strong>【${lossText}】</strong>，需要充足危疾現金流作後方支撐，避免停工時生活與照護受牽動。
+          • <strong>第一條戰線（醫療費用）</strong>：對應<strong>【${medText}】</strong>，需要實報實銷的醫保覆蓋；<br>
+          • <strong>${ciLineName}</strong>：對應<strong>【${ciText}】</strong>，需要充足危疾現金流作後方支撐，避免停工時生活與照護受牽動。
         </div>`;
       frontlineBox.innerHTML = frontlineHtml;
 
-      // 3. 根據 Google Sheet「規則設定」進行動態匹配
+      // 3. 雙向規則精準匹配
       state.alertMsg = '';
-      state.showAppMode = 'med'; // 預設
+      state.showAppMode = 'med';
 
       if (db.rules && db.rules.length > 0) {
-        // 先嘗試精確比對 step1 與 step2
-        var matchedRule = db.rules.find(r => r.step1 === state.step1Focus && r.step2 === state.step2Scenario);
-        // 若無，嘗試比對 any 規則
+        var matchedRule = db.rules.find(r => cleanKey(r.step1) === curStep1 && cleanKey(r.step2) === curStep2);
         if (!matchedRule) {
-          matchedRule = db.rules.find(r => (r.step1 === 'any' || r.step1 === state.step1Focus) && r.step2 === state.step2Scenario);
+          matchedRule = db.rules.find(r => (cleanKey(r.step1) === 'any' || cleanKey(r.step1) === curStep1) && cleanKey(r.step2) === curStep2);
         }
 
         if (matchedRule) {
           state.alertMsg = (matchedRule.alertMsg && !matchedRule.alertMsg.includes('無須提醒')) ? matchedRule.alertMsg : '';
-          state.showAppMode = matchedRule.showApp;
-        }
-      } else {
-        // 備用預設邏輯 (7大規則)
-        if (state.step2Scenario === 'both') {
-          state.alertMsg = '';
-          state.showAppMode = 'both';
-        } else if (state.step1Focus === 'medical' && state.step2Scenario === 'medical') {
-          state.alertMsg = '注意：你已聚焦前線醫療開支，但請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。';
-          state.showAppMode = 'med';
-        } else if (state.step1Focus === 'medical' && state.step2Scenario === 'ci') {
-          state.alertMsg = '注意：你首要重視醫療選擇，但情境未檢視醫療防線；請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。';
-          state.showAppMode = 'ci';
-        } else if (state.step1Focus === 'ci' && state.step2Scenario === 'medical') {
-          state.alertMsg = '注意：你首要重視家庭財務，但情境未檢視危疾防線；請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。';
-          state.showAppMode = 'ci';
-        } else if (state.step1Focus === 'ci' && state.step2Scenario === 'ci') {
-          state.alertMsg = '注意：你已聚焦後方生活防線，但請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。';
-          state.showAppMode = 'med';
-        } else if (state.step1Focus === 'both' && state.step2Scenario === 'medical') {
-          state.alertMsg = '注意：你清楚兩者同樣重要，但情境只檢視醫療；請留意長期停工休養時的「危疾生活保障防線」，避免後方現金流真空。';
-          state.showAppMode = 'med';
-        } else if (state.step1Focus === 'both' && state.step2Scenario === 'ci') {
-          state.alertMsg = '注意：你清楚兩者同樣重要，但情境只檢視財務；請留意前線私家醫療費用及「個人醫保防線」，避免高昂治療費用直接侵蝕儲蓄。';
-          state.showAppMode = 'ci';
+          var rawApp = cleanKey(matchedRule.showApp);
+          if (rawApp === 'both') state.showAppMode = 'both';
+          else if (rawApp === 'ci') state.showAppMode = 'ci';
+          else state.showAppMode = 'med';
         }
       }
 
@@ -965,9 +960,9 @@
         ${state.alertMsg ? `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>` : ''}`;
       block.innerHTML = summaryHtml;
 
-      // 4. 正確安全的 URL 組合引擎
+      // 4. 動態生成乾淨 URL
       function buildCleanUrl(baseUrl, paramsObj) {
-        var cleanBase = baseUrl.trim().replace(/\/+$/, '');
+        var cleanBase = (baseUrl || '').trim().replace(/\/+$/, '');
         var queryParts = [];
         for (var k in paramsObj) {
           if (paramsObj[k] !== undefined && paramsObj[k] !== null && paramsObj[k] !== '') {
@@ -1020,7 +1015,6 @@
           </div>
         </a>`;
 
-      // 依照規則嚴格呈現按鈕
       if (state.showAppMode === 'med') {
         solutionDesc.innerText = '因應你最關注醫療費用的直接衝擊，建議優先進入醫療分析工具填補自付差額：';
         solutionButtonsArea.innerHTML = btnMedical;
@@ -1133,11 +1127,11 @@
 
     function syncDatabase() {
       var syncDot = document.getElementById('syncDot');
-      var cached = localStorage.getItem('HEALTH_PLAN_DB_V5');
+      var cached = localStorage.getItem('HEALTH_PLAN_DB_V7');
       if (cached) {
         try {
           db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.1.6');
+          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.0');
           renderApp();
         } catch(err) { console.error(err); }
       }
@@ -1147,8 +1141,8 @@
         .then(remote => {
           if (remote && remote.status === 'success') {
             db = remote;
-            localStorage.setItem('HEALTH_PLAN_DB_V5', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.1.6');
+            localStorage.setItem('HEALTH_PLAN_DB_V7', JSON.stringify(remote));
+            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.0');
             renderApp();
             if (syncDot) syncDot.style.background = '#22c55e';
           }
