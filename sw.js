@@ -1,4 +1,4 @@
-const CACHE_NAME = 'health-planner-v1.2.3';
+const CACHE_NAME = 'health-planner-v1.2.6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
