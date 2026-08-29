@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.2.0</title>
+  <title>Health Protection Planner v1.2.3</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -67,6 +67,7 @@
       border-radius: 10px;
       font-weight: 800;
       margin-left: 6px;
+      cursor: pointer;
     }
     .role-badge {
       font-size: 11.5px;
@@ -248,7 +249,7 @@
       font-weight: 700;
       color: var(--text-sub);
     }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
@@ -258,6 +259,10 @@
       font-weight: 600;
       color: var(--text-main);
       outline: none;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
     }
     .stat-display {
       display: grid;
@@ -426,6 +431,69 @@
       background: #22c55e;
       margin-right: 6px;
     }
+
+    /* 管理員後台 Modal */
+    #adminModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .admin-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .admin-header {
+      padding: 16px 20px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .admin-section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 4px;
+      margin-top: 8px;
+    }
+    .admin-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .admin-footer {
+      padding: 14px 20px;
+      background: #f1f5f9;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid #e2e8f0;
+    }
+
     @media (max-width: 520px) {
       .input-grid, .stat-display, .grid-2x2, .solution-group, .role-grid {
         grid-template-columns: 1fr;
@@ -439,16 +507,32 @@
     <div style="display:flex; align-items:center;">
       <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion">v1.2.0</span>
+      <span class="version-tag" id="appVersion" title="點擊開啟後台">v1.2.3</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
+      <button type="button" id="btnOpenAdmin" style="background:none; border:none; font-size:16px; cursor:pointer;" title="後台管理">⚙️</button>
       <span id="pageCounter">00 / 05</span>
     </div>
   </div>
   
   <div class="progress-track" id="mainProgressTrack"></div>
   <main id="dynamicAppContainer"></main>
+</div>
+
+<!-- 後台管理彈窗 (免密碼直接開啟) -->
+<div id="adminModal">
+  <div class="admin-card">
+    <div class="admin-header">
+      <span style="font-weight:800; font-size:16px;">🛠️ 後台管理系統 (Google Sheet 雙向同步)</span>
+      <button type="button" id="btnCloseAdmin" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✕</button>
+    </div>
+    <div class="admin-body" id="adminBodyContent"></div>
+    <div class="admin-footer">
+      <button type="button" class="btn btn-secondary" id="btnCancelAdmin" style="flex:1;">取消</button>
+      <button type="button" class="btn btn-primary" id="btnSaveAdmin" style="flex:2;">💾 儲存並同步至 Google Sheet</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -918,7 +1002,7 @@
       }
       thoughtBox.innerHTML = thoughtHtml;
 
-      // 2. 兩條戰線（修復戰線歸屬）
+      // 2. 兩條戰線
       var frontlineHtml = '';
       var ciLineName = state.targetRole === 'child' ? '第二條戰線（父母停工照護）' : '第二條戰線（收入中斷）';
       var medText = (curStep2 === 'medical' || curStep2 === 'both') ? state.step2RawText : '即時高昂治療費用';
@@ -932,7 +1016,7 @@
         </div>`;
       frontlineBox.innerHTML = frontlineHtml;
 
-      // 3. 雙向規則精準匹配
+      // 3. 雙向規則匹配
       state.alertMsg = '';
       state.showAppMode = 'med';
 
@@ -951,16 +1035,27 @@
         }
       }
 
+      // 4. 動態組合第三個框內容
       var ciLabelText = state.targetRole === 'child' ? '父母停工照護及康復缺口：' : '收入失去／中斷生活儲備缺口：';
       var summaryHtml = `
         <div style="margin-bottom:8px;">🎯 <strong>最希望得到／守護：</strong>${state.step1RawText}</div>
-        <div style="margin-bottom:8px;">🛡 <strong>最不想失去／妥協：</strong>${lossText}</div>
-        <div style="margin-bottom:8px;">🏥 <strong>醫療費用直接衝擊缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Math.round(state.finalMedGap).toLocaleString()}</span> ${state.hasPersonalMed === 'no' ? '<span class="med-sub-notice">（未建立第二層個人醫保防線）</span>' : ''}</div>
-        <div style="margin-top:8px;">💰 <strong>${ciLabelText}</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Number(state.ciNetGap).toLocaleString()}</span> (已扣除現有 HK$ ${Number(state.ciExisting).toLocaleString()})</div>
-        ${state.alertMsg ? `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>` : ''}`;
+        <div style="margin-bottom:8px;">🛡 <strong>最不想失去／妥協：</strong>${lossText}</div>`;
+
+      if (curStep2 === 'medical' || curStep2 === 'both') {
+        summaryHtml += `<div style="margin-bottom:8px;">🏥 <strong>醫療費用直接衝擊缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Math.round(state.finalMedGap).toLocaleString()}</span> ${state.hasPersonalMed === 'no' ? '<span class="med-sub-notice">（未建立第二層個人醫保防線）</span>' : ''}</div>`;
+      }
+
+      if (curStep2 === 'ci' || curStep2 === 'both') {
+        summaryHtml += `<div style="margin-top:8px;">💰 <strong>${ciLabelText}</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Number(state.ciNetGap).toLocaleString()}</span> (已扣除現有 HK$ ${Number(state.ciExisting).toLocaleString()})</div>`;
+      }
+
+      if (state.alertMsg) {
+        summaryHtml += `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>`;
+      }
+
       block.innerHTML = summaryHtml;
 
-      // 4. 動態生成乾淨 URL
+      // 5. 動態生成乾淨 URL
       function buildCleanUrl(baseUrl, paramsObj) {
         var cleanBase = (baseUrl || '').trim().replace(/\/+$/, '');
         var queryParts = [];
@@ -1029,6 +1124,125 @@
         solutionButtonsArea.style.gridTemplateColumns = window.innerWidth <= 520 ? '1fr' : '1fr 1fr';
       }
     }
+
+    // ======================== 後台管理 (免密碼直通) ========================
+    function openAdminPanel() {
+      var modal = document.getElementById('adminModal');
+      var body = document.getElementById('adminBodyContent');
+      body.innerHTML = '';
+
+      // 1. 系統設定
+      var secConfig = document.createElement('div');
+      secConfig.innerHTML = `<div class="admin-section-title">⚙️ 系統設定 & 預設金額</div>`;
+      for (const [k, v] of Object.entries(db.config)) {
+        secConfig.innerHTML += `
+          <div class="admin-item">
+            <label>${k}</label>
+            <input type="text" data-admin-config="${k}" value="${v}">
+          </div>`;
+      }
+      body.appendChild(secConfig);
+
+      // 2. 頁面文案
+      var secPages = document.createElement('div');
+      secPages.innerHTML = `<div class="admin-section-title">📄 題目與副標題文案</div>`;
+      db.pages.forEach((p, idx) => {
+        secPages.innerHTML += `
+          <div class="admin-item">
+            <label>【${p.role === 'adult' ? '成人' : '兒童'} - 第 ${p.stepOrder} 步】${p.tagName}</label>
+            <input type="text" placeholder="主標題" data-admin-page-title="${idx}" value="${p.title}">
+            <textarea placeholder="副標題" data-admin-page-sub="${idx}">${p.subtitle}</textarea>
+          </div>`;
+      });
+      body.appendChild(secPages);
+
+      // 3. 選項文案
+      var secOpts = document.createElement('div');
+      secOpts.innerHTML = `<div class="admin-section-title">🔘 選項按鈕文案</div>`;
+      db.options.forEach((o, idx) => {
+        secOpts.innerHTML += `
+          <div class="admin-item">
+            <label>${o.pageId} (${o.optionKey})</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" style="width:50px;" placeholder="Icon" data-admin-opt-icon="${idx}" value="${o.icon}">
+              <input type="text" style="flex:1;" placeholder="選項標題" data-admin-opt-title="${idx}" value="${o.title}">
+            </div>
+            <input type="text" placeholder="選項說明" data-admin-opt-desc="${idx}" value="${o.desc}">
+          </div>`;
+      });
+      body.appendChild(secOpts);
+
+      modal.style.display = 'flex';
+    }
+
+    function saveAdminPanel() {
+      if (!confirm("確定儲存並將最新文案同步至 Google Sheet？")) return;
+
+      var btnSave = document.getElementById('btnSaveAdmin');
+      btnSave.innerText = "⏳ 正在同步至 Google Sheet...";
+      btnSave.disabled = true;
+
+      document.querySelectorAll('[data-admin-config]').forEach(inp => {
+        db.config[inp.dataset.adminConfig] = inp.value;
+      });
+
+      var curVer = String(db.config["資料版本"] || "1.2.3").split('.');
+      if (curVer.length === 3) {
+        curVer[2] = Number(curVer[2]) + 1;
+        db.config["資料版本"] = curVer.join('.');
+      } else {
+        db.config["資料版本"] = "1.2.4";
+      }
+
+      document.querySelectorAll('[data-admin-page-title]').forEach(inp => {
+        var idx = Number(inp.dataset.adminPageTitle);
+        db.pages[idx].title = inp.value;
+      });
+      document.querySelectorAll('[data-admin-page-sub]').forEach(inp => {
+        var idx = Number(inp.dataset.adminPageSub);
+        db.pages[idx].subtitle = inp.value;
+      });
+
+      document.querySelectorAll('[data-admin-opt-title]').forEach(inp => {
+        var idx = Number(inp.dataset.adminOptTitle);
+        db.options[idx].title = inp.value;
+      });
+      document.querySelectorAll('[data-admin-opt-icon]').forEach(inp => {
+        var idx = Number(inp.dataset.adminOptIcon);
+        db.options[idx].icon = inp.value;
+      });
+      document.querySelectorAll('[data-admin-opt-desc]').forEach(inp => {
+        var idx = Number(inp.dataset.adminOptDesc);
+        db.options[idx].desc = inp.value;
+      });
+
+      fetch(GAS_API_URL, {
+        method: "POST",
+        body: JSON.stringify(db)
+      })
+      .then(res => res.json())
+      .then(res => {
+        alert("✅ 成功同步至 Google Sheet！最新版本號：" + db.config["資料版本"]);
+        localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(db));
+        document.getElementById('appVersion').innerText = 'v' + db.config["資料版本"];
+        document.getElementById('adminModal').style.display = 'none';
+        renderApp();
+      })
+      .catch(err => {
+        alert("❌ 同步失敗，請檢查 GAS 部署權限：" + err);
+      })
+      .finally(() => {
+        btnSave.innerText = "💾 儲存並同步至 Google Sheet";
+        btnSave.disabled = false;
+      });
+    }
+
+    // ======================== 全域事件 ========================
+    document.getElementById('btnOpenAdmin').addEventListener('click', openAdminPanel);
+    document.getElementById('appVersion').addEventListener('click', openAdminPanel);
+    document.getElementById('btnCloseAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
+    document.getElementById('btnCancelAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
+    document.getElementById('btnSaveAdmin').addEventListener('click', saveAdminPanel);
 
     document.addEventListener('click', function(e) {
       var roleCard = e.target.closest('[data-role-btn]');
@@ -1127,11 +1341,11 @@
 
     function syncDatabase() {
       var syncDot = document.getElementById('syncDot');
-      var cached = localStorage.getItem('HEALTH_PLAN_DB_V7');
+      var cached = localStorage.getItem('HEALTH_PLAN_DB_V10');
       if (cached) {
         try {
           db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.0');
+          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.3');
           renderApp();
         } catch(err) { console.error(err); }
       }
@@ -1141,8 +1355,8 @@
         .then(remote => {
           if (remote && remote.status === 'success') {
             db = remote;
-            localStorage.setItem('HEALTH_PLAN_DB_V7', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.0');
+            localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(remote));
+            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.3');
             renderApp();
             if (syncDot) syncDot.style.background = '#22c55e';
           }
