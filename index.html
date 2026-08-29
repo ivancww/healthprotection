@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.2.3</title>
+  <title>Health Protection Planner v1.2.6</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -500,7 +500,7 @@
     <div style="display:flex; align-items:center;">
       <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion" title="點擊開啟後台">v1.2.3</span>
+      <span class="version-tag" id="appVersion" title="點擊開啟後台">v1.2.6</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
@@ -560,12 +560,10 @@
       ciMonths: 36
     };
     var db = null;
-
     function parseNum(val) {
       if (typeof val === 'number') return val;
       return Number(String(val || '').replace(/,/g, '')) || 0;
     }
-
     function cleanKey(val) {
       if (!val) return '';
       val = String(val).toLowerCase().trim();
@@ -575,7 +573,6 @@
       if (val.startsWith('any')) return 'any';
       return val;
     }
-
     function initFormatCurrency() {
       document.querySelectorAll('.format-currency').forEach(function(input) {
         input.addEventListener('input', function() {
@@ -588,14 +585,12 @@
         });
       });
     }
-
     function renderApp() {
       if (!db || !db.pages) return;
       var container = document.getElementById('dynamicAppContainer');
       container.innerHTML = '';
       state.rolePages = db.pages.filter(p => p.role === state.targetRole).sort((a,b) => a.stepOrder - b.stepOrder);
       state.totalSteps = state.rolePages.length;
-
       var track = document.getElementById('mainProgressTrack');
       track.innerHTML = '';
       for (var s = 0; s <= state.totalSteps; s++) {
@@ -604,7 +599,6 @@
         stepDiv.id = 'pstep_' + s;
         track.appendChild(stepDiv);
       }
-
       // STEP 0
       var p0Html = `
         <section class="card ${state.currentStep === 0 ? 'active' : ''}" id="stepCard_0">
@@ -630,13 +624,11 @@
           </div>
         </section>`;
       container.insertAdjacentHTML('beforeend', p0Html);
-
       // STEP 1 - 5
       state.rolePages.forEach(function(page, idx) {
         var stepNum = idx + 1;
         var opts = db.options.filter(o => o.pageId === page.pageId).sort((a,b) => a.order - b.order);
         var pageHtml = '';
-
         if (page.pageType === '單選題') {
           var optButtons = '';
           opts.forEach(function(o) {
@@ -663,7 +655,6 @@
           var defaultMonthly = isChild ? (db.config["兒童預設每月照護"] || 30000) : (db.config["成人預設每月開支"] || 40000);
           var defaultMonths = isChild ? (db.config["兒童預設陪伴月數"] || 24) : (db.config["成人預設休養月數"] || 36);
           var defaultCiExist = isChild ? (db.config["兒童預設現有危疾"] || 0) : (db.config["成人預設現有危疾"] || 500000);
-
           pageHtml = `
             <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
               <span class="tag">${page.tagName}</span>
@@ -813,18 +804,15 @@
         }
         container.insertAdjacentHTML('beforeend', pageHtml);
       });
-
       initFormatCurrency();
       updatePageCounter();
       calculate();
     }
-
     function updatePageCounter() {
       var badge = document.getElementById('topRoleBadge');
       if (badge) badge.innerText = state.targetRole === 'child' ? '👶 兒童模式' : '👨‍👩‍👧 成人模式';
       var counter = document.getElementById('pageCounter');
       if (counter) counter.innerText = '0' + state.currentStep + ' / 0' + state.totalSteps;
-
       for (var s = 0; s <= state.totalSteps; s++) {
         var card = document.getElementById('stepCard_' + s);
         var pstep = document.getElementById('pstep_' + s);
@@ -833,12 +821,10 @@
       }
       window.scrollTo(0, 0);
     }
-
     function applyVisibilityStep3() {
       var medBlock = document.getElementById('blockMedical');
       var ciBlock = document.getElementById('blockCI');
       if (!medBlock || !ciBlock) return;
-
       var curStep2 = cleanKey(state.step2Scenario);
       if (curStep2 === 'medical') {
         medBlock.style.display = 'block';
@@ -851,17 +837,14 @@
         ciBlock.style.display = 'block';
       }
     }
-
     function calculate() {
       var costElem = document.getElementById('medicalCost');
       if (!costElem) return;
       var cost = parseNum(costElem.value);
       state.medCost = cost;
-
       var compSelect = document.getElementById('hasCompanyMed');
       var hasComp = compSelect ? compSelect.value === 'yes' : false;
       state.hasCompanyMed = hasComp ? 'yes' : 'no';
-
       var compPay = 0;
       if (hasComp && state.targetRole === 'adult') {
         var compLimit = parseNum(document.getElementById('companyLimit').value);
@@ -874,13 +857,10 @@
         state.companyRate = 0;
       }
       state.companyPay = compPay;
-
       var remainingAfterComp = Math.max(0, cost - compPay);
-
       var persSelect = document.getElementById('hasPersonalMed');
       var hasPers = persSelect ? persSelect.value === 'yes' : true;
       state.hasPersonalMed = hasPers ? 'yes' : 'no';
-
       var persPay = 0;
       if (hasPers) {
         var pLimit = parseNum(document.getElementById('personalLimit').value);
@@ -893,36 +873,27 @@
         state.personalRate = 0;
       }
       state.personalPay = persPay;
-
       var finalGap = Math.max(0, cost - compPay - persPay);
       state.finalMedGap = finalGap;
-
       var cpElem = document.getElementById('companyPayDisplay');
       if (cpElem) cpElem.innerText = 'HK$ ' + Math.round(compPay).toLocaleString();
-
       var ppElem = document.getElementById('personalPayDisplay');
       if (ppElem) ppElem.innerText = 'HK$ ' + Math.round(persPay).toLocaleString();
-
       var tmgElem = document.getElementById('totalMedGapDisplay');
       if (tmgElem) tmgElem.innerText = 'HK$ ' + Math.round(finalGap).toLocaleString();
-
       var ciM = parseNum(document.getElementById('ciMonthly').value);
       var ciMonths = parseNum(document.getElementById('ciMonths').value);
       var ciExist = parseNum(document.getElementById('existingCI').value);
-
       state.ciMonthly = ciM;
       state.ciMonths = ciMonths;
       state.ciTotal = ciM * ciMonths;
       state.ciExisting = ciExist;
       state.ciNetGap = Math.max(0, state.ciTotal - ciExist);
-
       var ciTotElem = document.getElementById('ciTotalDisplay');
       if (ciTotElem) ciTotElem.innerText = 'HK$ ' + state.ciTotal.toLocaleString();
-
       var ciGapElem = document.getElementById('ciNetGapDisplay');
       if (ciGapElem) ciGapElem.innerText = 'HK$ ' + state.ciNetGap.toLocaleString();
     }
-
     function updateSummary() {
       var thoughtBox = document.getElementById('thoughtBox');
       var frontlineBox = document.getElementById('frontlineBox');
@@ -930,12 +901,10 @@
       var solutionDesc = document.getElementById('solutionDesc');
       var solutionButtonsArea = document.getElementById('solutionButtonsArea');
       if (!thoughtBox || !frontlineBox || !block) return;
-
       var defaultLoss = state.targetRole === 'child' ? '孩子最佳醫療資源與父母全天候陪伴' : '家庭現有生活質素及既定資產規劃';
       var lossText = state.losses.length > 0 ? state.losses.join('、') : defaultLoss;
       var curStep1 = cleanKey(state.step1Focus);
       var curStep2 = cleanKey(state.step2Scenario);
-
       // 1. 客戶心中想法
       var thoughtHtml = '';
       if (curStep1 === 'both') {
@@ -977,8 +946,7 @@
           </div>`;
       }
       thoughtBox.innerHTML = thoughtHtml;
-
-      // 2. 兩條戰線 (已轉為綠色底綠色字)
+      // 2. 兩條戰線
       var frontlineHtml = '';
       var ciLineName = state.targetRole === 'child' ? '第二條戰線（父母停工照護）' : '第二條戰線（收入中斷）';
       var medText = (curStep2 === 'medical' || curStep2 === 'both') ? state.step2RawText : '即時高昂治療費用';
@@ -990,7 +958,6 @@
           • <strong>${ciLineName}</strong>：對應<strong>【${ciText}】</strong>，需要充足危疾現金流作後方支撐，避免停工時生活與照護受牽動。
         </div>`;
       frontlineBox.innerHTML = frontlineHtml;
-
       // 3. 雙向規則匹配
       state.alertMsg = '';
       state.showAppMode = 'med';
@@ -1007,13 +974,11 @@
           else state.showAppMode = 'med';
         }
       }
-
       // 4. 動態組合第三個框內容
       var ciLabelText = state.targetRole === 'child' ? '父母停工照護及康復缺口：' : '收入失去／中斷生活儲備缺口：';
       var summaryHtml = `
         <div style="margin-bottom:8px;">🎯 <strong>最希望得到／守護：</strong>${state.step1RawText}</div>
         <div style="margin-bottom:8px;">🛡 <strong>最不想失去／妥協：</strong>${lossText}</div>`;
-
       if (curStep2 === 'medical' || curStep2 === 'both') {
         summaryHtml += `<div style="margin-bottom:8px;">🏥 <strong>醫療費用直接衝擊缺口：</strong><span style="color:var(--danger); font-weight:800;">約 HK$ ${Math.round(state.finalMedGap).toLocaleString()}</span> ${state.hasPersonalMed === 'no' ? '<span class="med-sub-notice">（未建立第二層個人醫保防線）</span>' : ''}</div>`;
       }
@@ -1024,8 +989,8 @@
         summaryHtml += `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>`;
       }
       block.innerHTML = summaryHtml;
-
-      // 5. 動態生成乾淨 URL
+      
+      // 5. 動態生成乾淨 URL (精確傳遞 role 參數確保醫療與危疾 App 均能切換至兒童模式)
       function buildCleanUrl(baseUrl, paramsObj) {
         var cleanBase = (baseUrl || '').trim().replace(/\/+$/, '');
         var queryParts = [];
@@ -1036,11 +1001,11 @@
         }
         return cleanBase + (queryParts.length > 0 ? '?' + queryParts.join('&') : '');
       }
-
       var medBase = db.config["醫療App網址"] || "https://ivancww.github.io/medicalclaims";
       var ciBase = db.config["危疾App網址"] || "https://ivancww.github.io/CIApp";
-
+      
       var medParams = {
+        role: state.targetRole, // 傳遞 'adult' 或 'child'
         cost: state.medCost,
         hasCompany: state.hasCompanyMed,
         companyLimit: state.companyLimit,
@@ -1052,18 +1017,19 @@
         alertMsg: state.alertMsg,
         focus: state.step1Focus || ''
       };
-
+      
       var ciParams = {
+        role: state.targetRole, // 傳遞 'adult' 或 'child'
         expense: state.ciMonthly,
         existing: state.ciExisting,
         losses: state.losses.join(','),
         alertMsg: state.alertMsg,
         focus: state.step1Focus || ''
       };
-
+      
       var medUrl = buildCleanUrl(medBase, medParams);
       var ciUrl = buildCleanUrl(ciBase, ciParams);
-
+      
       var btnMedical = `
         <a href="${medUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn med">
           <img src="https://ivancww.github.io/medicalclaims/icon-192.png" alt="Medical App Logo" onerror="this.style.display='none'">
@@ -1072,7 +1038,6 @@
             <span class="app-action">解決醫療費用直接衝擊 →</span>
           </div>
         </a>`;
-
       var btnCI = `
         <a href="${ciUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn ci">
           <img src="https://ivancww.github.io/CIApp/icon-192.png" alt="CI App Logo" onerror="this.style.display='none'">
@@ -1081,7 +1046,6 @@
             <span class="app-action">解決生活/照護儲備缺口 →</span>
           </div>
         </a>`;
-
       if (state.showAppMode === 'med') {
         solutionDesc.innerText = '因應你最關注醫療費用的直接衝擊，建議優先進入醫療分析工具填補自付差額：';
         solutionButtonsArea.innerHTML = btnMedical;
@@ -1096,14 +1060,11 @@
         solutionButtonsArea.style.gridTemplateColumns = window.innerWidth <= 520 ? '1fr' : '1fr 1fr';
       }
     }
-
-    // ======================== 後台管理 (免密碼直通) ========================
+    // ======================== 後台管理 ========================
     function openAdminPanel() {
       var modal = document.getElementById('adminModal');
       var body = document.getElementById('adminBodyContent');
       body.innerHTML = '';
-
-      // 1. 系統設定
       var secConfig = document.createElement('div');
       secConfig.innerHTML = `<div class="admin-section-title">⚙️ 系統設定 & 預設金額</div>`;
       for (const [k, v] of Object.entries(db.config)) {
@@ -1114,8 +1075,6 @@
           </div>`;
       }
       body.appendChild(secConfig);
-
-      // 2. 頁面文案
       var secPages = document.createElement('div');
       secPages.innerHTML = `<div class="admin-section-title">📄 題目與副標題文案</div>`;
       db.pages.forEach((p, idx) => {
@@ -1127,8 +1086,6 @@
           </div>`;
       });
       body.appendChild(secPages);
-
-      // 3. 選項文案
       var secOpts = document.createElement('div');
       secOpts.innerHTML = `<div class="admin-section-title">🔘 選項按鈕文案</div>`;
       db.options.forEach((o, idx) => {
@@ -1143,28 +1100,23 @@
           </div>`;
       });
       body.appendChild(secOpts);
-
       modal.style.display = 'flex';
     }
-
     function saveAdminPanel() {
       if (!confirm("確定儲存並將最新文案同步至 Google Sheet？")) return;
       var btnSave = document.getElementById('btnSaveAdmin');
       btnSave.innerText = "⏳ 正在同步至 Google Sheet...";
       btnSave.disabled = true;
-
       document.querySelectorAll('[data-admin-config]').forEach(inp => {
         db.config[inp.dataset.adminConfig] = inp.value;
       });
-
-      var curVer = String(db.config["資料版本"] || "1.2.3").split('.');
+      var curVer = String(db.config["資料版本"] || "1.2.5").split('.');
       if (curVer.length === 3) {
         curVer[2] = Number(curVer[2]) + 1;
         db.config["資料版本"] = curVer.join('.');
       } else {
-        db.config["資料版本"] = "1.2.4";
+        db.config["資料版本"] = "1.2.6";
       }
-
       document.querySelectorAll('[data-admin-page-title]').forEach(inp => {
         var idx = Number(inp.dataset.adminPageTitle);
         db.pages[idx].title = inp.value;
@@ -1185,7 +1137,6 @@
         var idx = Number(inp.dataset.adminOptDesc);
         db.options[idx].desc = inp.value;
       });
-
       fetch(GAS_API_URL, {
         method: "POST",
         body: JSON.stringify(db)
@@ -1206,14 +1157,12 @@
         btnSave.disabled = false;
       });
     }
-
     // ======================== 全域事件 ========================
     document.getElementById('btnOpenAdmin').addEventListener('click', openAdminPanel);
     document.getElementById('appVersion').addEventListener('click', openAdminPanel);
     document.getElementById('btnCloseAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
     document.getElementById('btnCancelAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
     document.getElementById('btnSaveAdmin').addEventListener('click', saveAdminPanel);
-
     document.addEventListener('click', function(e) {
       var roleCard = e.target.closest('[data-role-btn]');
       if (roleCard) {
@@ -1223,7 +1172,6 @@
         renderApp();
         return;
       }
-
       var choiceBtn = e.target.closest('.choice-btn');
       if (choiceBtn && choiceBtn.dataset.stepChoice) {
         var pCard = choiceBtn.closest('.card');
@@ -1241,7 +1189,6 @@
         }
         return;
       }
-
       var gridBtn = e.target.closest('.grid-btn');
       if (gridBtn) {
         gridBtn.classList.toggle('selected');
@@ -1251,7 +1198,6 @@
         });
         return;
       }
-
       var navBtn = e.target.closest('[data-nav-action]');
       if (navBtn) {
         var action = navBtn.dataset.navAction;
@@ -1286,7 +1232,6 @@
         }
       }
     });
-
     document.addEventListener('change', function(e) {
       if (!e.target) return;
       if (e.target.id === 'hasCompanyMed') {
@@ -1299,27 +1244,24 @@
       }
       calculate();
     });
-
     document.addEventListener('input', calculate);
-
     function syncDatabase() {
       var syncDot = document.getElementById('syncDot');
       var cached = localStorage.getItem('HEALTH_PLAN_DB_V10');
       if (cached) {
         try {
           db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.3');
+          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.6');
           renderApp();
         } catch(err) { console.error(err); }
       }
-
       fetch(GAS_API_URL)
         .then(res => res.json())
         .then(remote => {
           if (remote && remote.status === 'success') {
             db = remote;
             localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.3');
+            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.6');
             renderApp();
             if (syncDot) syncDot.style.background = '#22c55e';
           }
@@ -1329,7 +1271,6 @@
           if (syncDot) syncDot.style.background = '#eab308';
         });
     }
-
     syncDatabase();
   })();
 </script>
