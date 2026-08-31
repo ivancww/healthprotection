@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.3.0 | AVA 專屬</title>
+  <title>Health Protection Planner v1.3.1 | AVA 專屬</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -332,7 +332,7 @@
       color: var(--text-main);
     }
 
-    /* 05 頁全新三部曲深度 Review 專屬樣式 */
+    /* 05 頁全新二部分深度 Review 樣式 */
     .review-part-card {
       background: #ffffff;
       border: 1px solid var(--border);
@@ -366,14 +366,14 @@
       margin-top: 6px;
     }
 
-    /* 第三部分：一句 Review 特殊放大框 */
+    /* 第二部分：核心 Review (放大核心金句) */
     .part3-hero-box {
       background: #f0f7ff;
       border: 1.5px solid #bfdbfe;
       border-left: 5px solid var(--primary);
       border-radius: 12px;
       padding: 18px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
     .part3-hero-text {
       font-size: 15.5px;
@@ -382,7 +382,7 @@
       line-height: 1.7;
     }
 
-    /* 05 頁雙入口專屬按鈕 */
+    /* 05 頁雙入口卡片設計 (還原 App Logo) */
     .dual-entry-container {
       display: flex;
       flex-direction: column;
@@ -397,8 +397,8 @@
       cursor: pointer;
       text-decoration: none;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      align-items: center;
+      gap: 14px;
       transition: all 0.2s ease;
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
@@ -409,29 +409,43 @@
     .entry-nav-card:active {
       transform: scale(0.99);
     }
-    .entry-header {
+    .entry-nav-card.highlight-primary {
+      border: 2px solid var(--primary);
+      background: #f0f7ff;
+      box-shadow: 0 4px 14px rgba(30, 58, 138, 0.08);
+    }
+    .entry-app-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .entry-content {
+      flex: 1;
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .entry-header {
+      font-size: 15.5px;
       font-weight: 800;
       color: var(--text-main);
     }
     .entry-desc {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-sub);
       line-height: 1.5;
-      border-left: 3px solid #e2e8f0;
-      padding-left: 8px;
     }
     .entry-action-btn {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 800;
       color: var(--primary);
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 4px;
+      gap: 4px;
+      margin-top: 2px;
     }
 
     .sync-status-dot {
@@ -527,7 +541,7 @@
     <div style="display:flex; align-items:center;">
       <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion" onclick="openAdminPanel()" title="點擊開啟後台鏡像系統">v1.3.0</span>
+      <span class="version-tag" id="appVersion" onclick="openAdminPanel()" title="點擊開啟後台鏡像系統">v1.3.1</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
@@ -549,7 +563,7 @@
     </div>
     <div class="admin-nav-tabs">
       <button class="admin-nav-btn active" onclick="switchAdminTab('pPages')">頁面題目與選項管理</button>
-      <button class="admin-nav-btn" onclick="switchAdminTab('pReview')">05 總結文案庫</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('pReview')">總結文案庫 (05 Review)</button>
       <button class="admin-nav-btn" onclick="switchAdminTab('pRules')">規則設定庫 (Alert)</button>
       <button class="admin-nav-btn" onclick="switchAdminTab('pConfig')">系統設定 & 參數範本</button>
     </div>
@@ -563,11 +577,11 @@
         <div id="adminPagesMirror"></div>
       </div>
       
-      <!-- 2. 05 總結三部曲文案庫鏡像 -->
+      <!-- 2. 05 總結文案庫鏡像 (精確對應最新 Google Sheet 結構) -->
       <div id="admTab-pReview" class="adm-section-panel" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <strong style="color:var(--primary); font-size:14px;">📝 05 總結三部曲文案庫（對應「總結文案庫」工作表）</strong>
-          <button type="button" onclick="addAdminReviewTpl()" style="background:var(--primary); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">+ 新增文案模組</button>
+          <strong style="color:var(--primary); font-size:14px;">📝 總結文案庫（對應 Google Sheet「總結文案庫」工作表）</strong>
+          <button type="button" onclick="addAdminReviewTpl()" style="background:var(--primary); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">+ 新增文案</button>
         </div>
         <div id="adminReviewMirror"></div>
       </div>
@@ -602,13 +616,12 @@
       currentStep: 0,
       totalSteps: 5,
       rolePages: [],
-      step1Focus: null,
+      step1Focus: 'medical',
       step1RawText: '',
       step2Scenario: null,
       step2RawText: '',
       losses: [],
       alertMsg: '',
-      showAppMode: 'med',
       medCost: 500000,
       companyLimit: 100000,
       companyRate: 80,
@@ -625,9 +638,9 @@
     };
 
     var DEFAULT_FALLBACK_DB = {
-      version: "1.3.0",
+      version: "1.3.1",
       config: {
-        "資料版本": "1.3.0",
+        "資料版本": "1.3.1",
         "醫療App網址": "https://ivancww.github.io/medicalclaims",
         "醫療App參數": "role={role}&cost={medCost}&hasCompany={hasCompany}&companyLimit={companyLimit}&companyRate={companyRate}&hasPersonal={hasPersonal}&personalLimit={personalLimit}&personalRate={personalRate}&losses={losses}&alertMsg={alertMsg}&focus={focus}",
         "危疾App網址": "https://ivancww.github.io/CIApp",
@@ -655,9 +668,9 @@
         { pageId: "p5_child", role: "child", stepOrder: 5, tagName: "05 ｜ 健康保障review", title: "根據你的重視與關注，得出以下總結及缺口", subtitle: "", pageType: "總結頁" }
       ],
       options: [
-        { pageId: "p1_adult", optionKey: "medical", icon: "🏥", title: "有需要時，仍然有醫療選擇", desc: "你希望遇到健康問題時，可以按治療需要作決定，而唔希望費用成為主要限制。", order: 1 },
-        { pageId: "p1_adult", optionKey: "ci", icon: "🛡️", title: "面對重大健康變化，維持生活水平", desc: "即使面對重大疾病，生活水平與家庭責任不變，避免長期休養時中斷現金流。", order: 2 },
-        { pageId: "p1_adult", optionKey: "both", icon: "🏥 + 🛡️", title: "醫療選擇與家庭財務同樣重要", desc: "既想保留醫療選擇，也想維持家庭生活水準及積蓄。", order: 3 },
+        { pageId: "p1_adult", optionKey: "medical", icon: "🏥", title: "醫療選擇", desc: "有須要時，可以選擇最好的醫生與技術。", order: 1 },
+        { pageId: "p1_adult", optionKey: "ci", icon: "🛡️", title: "家庭生活", desc: "即使面對重大疾病，生活水平與家庭責任不變，避免長期休養時中斷現金流。", order: 2 },
+        { pageId: "p1_adult", optionKey: "both", icon: "🏥 + 🛡️", title: "兩方面都重要", desc: "既想保留醫療選擇，也想維持家庭生活水準及積蓄。", order: 3 },
         { pageId: "p2_adult", optionKey: "medical", icon: "🏥", title: "先以治療須要作決定", desc: "以醫生建議及最佳治療效果為首要考量。", order: 1 },
         { pageId: "p2_adult", optionKey: "ci", icon: "🛡️", title: "先考慮自己可以負擔的費用", desc: "先了解自己須要自付的醫療費及生活影響。", order: 2 },
         { pageId: "p2_adult", optionKey: "both", icon: "⚖️", title: "兩方面都要兼顧", desc: "希望有醫療選擇，同時不想動用個人積蓄。", order: 3 },
@@ -681,7 +694,7 @@
         {
           reviewId: "REV_A_MED",
           role: "adult",
-          mode: "medical",
+          mode: "med",
           part1Title: "🏥 有需要時，仍然有醫療選擇",
           part1Desc: "你希望遇到健康問題時，可以按治療需要作決定，而唔希望費用成為主要限制。",
           part3Review: "所以，你想守住的，不只是醫療費用，而是健康出現變化時，仍然可以保留原本的選擇。",
@@ -711,9 +724,9 @@
         {
           reviewId: "REV_C_MED",
           role: "child",
-          mode: "medical",
+          mode: "med",
           part1Title: "🏥 把握黃金治療期，選頂尖醫療資源",
-          part1Desc: "不必因醫療費限制，確保孩子第一時間獲得最好的私家醫療與藥物。",
+          part1Desc: "不必因醫療費限制，確保孩子第一時間獲得最好的私家醫療與最新技術。",
           part3Review: "所以，你想守護的，是孩子最黃金的治療機會，讓醫療資源成為孩子最強後盾。",
           medIntro: "先了解孩子現有醫療保障，確保 0 自付全數索償。",
           ciIntro: "治療之外，全天候陪伴呢？父母專職停工照護時的家庭現金流儲備。"
@@ -760,7 +773,7 @@
     function cleanKey(val) {
       if (!val) return '';
       val = String(val).toLowerCase().trim();
-      if (val.startsWith('med')) return 'medical';
+      if (val.startsWith('med')) return 'med';
       if (val.startsWith('ci')) return 'ci';
       if (val.startsWith('both')) return 'both';
       if (val.startsWith('any')) return 'any';
@@ -824,7 +837,7 @@
         </section>`;
       container.insertAdjacentHTML('beforeend', p0Html);
 
-      // STEP 1 - N
+      // STEP 1 - N 動態卡片
       state.rolePages.forEach(function(page, idx) {
         var stepNum = idx + 1;
         var opts = (db.options || []).filter(o => o.pageId === page.pageId).sort((a,b) => Number(a.order) - Number(b.order));
@@ -851,7 +864,7 @@
               </div>
             </section>`;
         } else if (page.pageType === '試算頁') {
-          // 03 頁：只顯示預計須要與現有保障 (藍色風格)
+          // 03 頁：只呈現預計須要與現有保障 (藍色風格)
           var isChild = state.targetRole === 'child';
           var defaultMed = isChild ? (db.config["兒童預設醫療費"] || 200000) : (db.config["成人預設醫療費"] || 500000);
           
@@ -915,7 +928,7 @@
                   </div>
                 </div>
                 
-                <!-- 03 頁全新藍色防線現狀框：只顯示預計須要與現有保障 -->
+                <!-- 03 頁藍色防線現狀框：只顯示預計須要與現有保障 -->
                 <div class="blue-summary-box">
                   <div class="blue-summary-row">
                     <span>預計醫療開支須要：</span>
@@ -951,13 +964,13 @@
               </div>
             </section>`;
         } else if (page.pageType === '總結頁') {
-          // 05 頁全新三部曲 + 雙入口結構
+          // 05 頁全新二部分 + 雙入口動態容器 (包含 App Logo)
           pageHtml = `
             <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
               <span class="tag">${page.tagName}</span>
               <h1>${page.title}</h1>
               
-              <!-- 第一部分：客人自己的答案 -->
+              <!-- 第一部分：客人自己的答案 (01/02 心理映射) -->
               <div class="review-part-card">
                 <span class="review-part-tag">第一部分：客人自己的答案</span>
                 <p style="font-size:13px; color:#64748b; margin-bottom:4px;">從你剛才的選擇，我看到你最重視的是：</p>
@@ -965,55 +978,21 @@
                 <div class="review-part-desc" id="p5-part1-desc">你希望遇到健康問題時，可以按治療需要作決定，而唔希望費用成為主要限制。</div>
               </div>
 
-              <!-- 第二部分：客人真正想守住嘅 -->
-              <div class="review-part-card">
-                <span class="review-part-tag">第二部分：客人真正想守住嘅</span>
-                <p style="font-size:13px; color:#64748b; margin-bottom:4px;">而你最不希望被打亂的是：</p>
-                <div class="review-part-title" id="p5-part2-title">🌅 退休計劃</div>
-                <div class="review-part-desc" id="p5-part2-desc">你唔希望一次健康事件，影響多年累積嘅生活安排與資產積蓄。</div>
-              </div>
-
-              <!-- 第三部分：一句 Review (放大核心金句) -->
+              <!-- 第二部分：核心 Review (一句點題金句放大) -->
               <div class="part3-hero-box">
-                <span class="review-part-tag" style="color:#0369a1;">第三部分：核心 Review</span>
+                <span class="review-part-tag" style="color:#0369a1;">第二部分：核心 Review</span>
                 <div class="part3-hero-text" id="p5-part3-quote">
                   「所以，你想守住的，不只是醫療費用，而是健康出現變化時，仍然可以保留原本的選擇。」
                 </div>
               </div>
 
-              <!-- 真正需要的兩個入口 -->
+              <!-- 真正需要的雙入口導流 (根據 01 頁動態排序) -->
               <div style="margin-top:20px; margin-bottom:10px;">
                 <h3 style="font-size:16px; font-weight:800; color:var(--text-main);">然後先係你真正要嘅兩個入口：</h3>
               </div>
 
-              <div class="dual-entry-container">
-                <!-- 入口 1：醫療方案 -->
-                <a href="#" id="linkMedicalApp" target="_blank" rel="noopener noreferrer" class="entry-nav-card">
-                  <div class="entry-header">
-                    <span>🏥</span>
-                    <span>你最關注：醫療選擇</span>
-                  </div>
-                  <div class="entry-desc" id="p5-med-intro">
-                    先了解你現有醫療保障，實際可以支持到幾多。
-                  </div>
-                  <div class="entry-action-btn">
-                    <span>了解醫療方案 →</span>
-                  </div>
-                </a>
-
-                <!-- 入口 2：生活/照護保障 -->
-                <a href="#" id="linkCIApp" target="_blank" rel="noopener noreferrer" class="entry-nav-card" style="border-color:#fed7aa; background:#fffaf5;">
-                  <div class="entry-header" style="color:#c2410c;">
-                    <span>🛡️</span>
-                    <span>另外，你剛才亦提到……</span>
-                  </div>
-                  <div class="entry-desc" id="p5-ci-intro" style="border-left-color:#fdba74;">
-                    如果健康問題令你需要長時間休養，原本嘅收入、家庭生活及退休計劃又可以維持幾耐？
-                  </div>
-                  <div class="entry-action-btn" style="color:#ea580c;">
-                    <span>了解生活保障 (治療之外，生活呢？) →</span>
-                  </div>
-                </a>
+              <div class="dual-entry-container" id="p5-dual-entry-box">
+                <!-- 動態注入醫療 App 與 危疾 App 卡片 -->
               </div>
 
               <div class="btn-group" style="margin-top: 20px;">
@@ -1090,57 +1069,29 @@
       if (dispExist) dispExist.innerText = 'HK$ ' + Math.round(state.totalExistingPay).toLocaleString();
     }
 
-    // ======================== 05 頁全新三部曲動態渲染 ========================
+    // ======================== 05 頁全新二部分動態渲染 ========================
     function updateSummaryReview() {
-      var curStep1 = cleanKey(state.step1Focus) || 'medical';
+      var curStep1 = cleanKey(state.step1Focus) || 'med';
       var r = state.targetRole;
       
-      // 1. 從總結文案庫匹配對應模組
+      // 1. 從「總結文案庫」匹配對應模組
       var reviewList = (db && db.reviews && db.reviews.length > 0) ? db.reviews : DEFAULT_FALLBACK_DB.reviews;
       var matchedReview = reviewList.find(rv => rv.role === r && cleanKey(rv.mode) === curStep1);
       if (!matchedReview) {
         matchedReview = reviewList.find(rv => rv.role === r) || DEFAULT_FALLBACK_DB.reviews[0];
       }
 
-      // 第一部分
+      // 第一部分：客人答案
       var elP1Title = document.getElementById('p5-part1-title');
       var elP1Desc = document.getElementById('p5-part1-desc');
       if (elP1Title) elP1Title.innerText = state.step1RawText || matchedReview.part1Title;
       if (elP1Desc) elP1Desc.innerText = matchedReview.part1Desc;
 
-      // 第二部分 (根據 04 所選)
-      var elP2Title = document.getElementById('p5-part2-title');
-      var elP2Desc = document.getElementById('p5-part2-desc');
-      var lossText = (state.losses && state.losses.length > 0) ? state.losses.join('、') : (r === 'child' ? '全天候陪伴與教育規劃' : '退休計劃與生活積蓄');
-      if (elP2Title) elP2Title.innerText = lossText;
-      if (elP2Desc) {
-        elP2Desc.innerText = r === 'child' 
-          ? '你希望在關鍵抗病時期，守護孩子的黃金治療與全心全意陪伴，不因開支動搖家庭未來。'
-          : '你唔希望一次突如其來的健康事件，影響多年辛苦累積嘅生活安排、退休儲備與資產。';
-      }
-
-      // 第三部分 (一句點題 Review)
+      // 第二部分：核心 Review (一句金句放大)
       var elP3Quote = document.getElementById('p5-part3-quote');
       if (elP3Quote) elP3Quote.innerText = `「${matchedReview.part3Review}」`;
 
-      // 雙入口引導文案
-      var elMedIntro = document.getElementById('p5-med-intro');
-      var elCiIntro = document.getElementById('p5-ci-intro');
-      if (elMedIntro) elMedIntro.innerText = matchedReview.medIntro;
-      if (elCiIntro) elCiIntro.innerText = matchedReview.ciIntro;
-
-      // 雙向規則 (Alert 提醒比對)
-      state.alertMsg = '';
-      if (db.rules && db.rules.length > 0) {
-        var curStep2 = cleanKey(state.step2Scenario);
-        var rule = db.rules.find(ru => cleanKey(ru.step1) === curStep1 && cleanKey(ru.step2) === curStep2);
-        if (!rule) rule = db.rules.find(ru => (cleanKey(ru.step1) === 'any' || cleanKey(ru.step1) === curStep1) && cleanKey(ru.step2) === curStep2);
-        if (rule && rule.alertMsg && !rule.alertMsg.includes('無須提醒')) {
-          state.alertMsg = rule.alertMsg;
-        }
-      }
-
-      // 動態編譯乾淨 URL
+      // 動態組裝 URL
       function compileUrl(baseUrl, paramTemplate, valMap) {
         var cleanBase = (baseUrl || '').trim().replace(/\/+$/, '');
         var queryString = paramTemplate || '';
@@ -1151,6 +1102,7 @@
         return cleanBase + (queryString ? '?' + queryString : '');
       }
 
+      var lossText = (state.losses && state.losses.length > 0) ? state.losses.join('、') : (r === 'child' ? '全天候陪伴,教育規劃' : '退休計劃,家庭資產');
       var valDict = {
         role: state.targetRole,
         type: state.targetRole,
@@ -1169,7 +1121,7 @@
         existing: state.ciExisting,
         existingCI: state.ciExisting,
         losses: lossText,
-        alertMsg: state.alertMsg,
+        alertMsg: state.alertMsg || '',
         focus: state.step1Focus || ''
       };
 
@@ -1178,8 +1130,41 @@
       var ciBase = (db.config && db.config["危疾App網址"]) || "https://ivancww.github.io/CIApp";
       var ciTpl = (db.config && db.config["危疾App參數"]) || "role={role}&expense={ciMonthly}&months={ciMonths}&existing={existingCI}&losses={losses}&alertMsg={alertMsg}&focus={focus}";
 
-      document.getElementById('linkMedicalApp').href = compileUrl(medBase, medTpl, valDict);
-      document.getElementById('linkCIApp').href = compileUrl(ciBase, ciTpl, valDict);
+      var medUrl = compileUrl(medBase, medTpl, valDict);
+      var ciUrl = compileUrl(ciBase, ciTpl, valDict);
+
+      // 動態組裝 App 卡片 HTML
+      var isMedFirst = (curStep1 === 'med');
+      var isCiFirst = (curStep1 === 'ci');
+
+      var medCardHtml = `
+        <a href="${medUrl}" target="_blank" rel="noopener noreferrer" class="entry-nav-card ${isMedFirst ? 'highlight-primary' : ''}">
+          <img src="https://ivancww.github.io/medicalclaims/icon-192.png" alt="Medical App Logo" class="entry-app-logo" onerror="this.src='https://ivancww.github.io/medicalclaims/icon-192.png';">
+          <div class="entry-content">
+            <div class="entry-header">🏥 ${isMedFirst ? '你最關注：醫療選擇' : '溫馨提示：醫療選擇防線'}</div>
+            <div class="entry-desc">${matchedReview.medIntro}</div>
+            <div class="entry-action-btn">了解醫療方案 →</div>
+          </div>
+        </a>`;
+
+      var ciCardHtml = `
+        <a href="${ciUrl}" target="_blank" rel="noopener noreferrer" class="entry-nav-card ${isCiFirst ? 'highlight-primary' : ''}" style="border-color:#fed7aa; background:${isCiFirst ? '#fff7ed' : '#fffaf5'};">
+          <img src="https://ivancww.github.io/CIApp/icon-192.png" alt="CI App Logo" class="entry-app-logo" onerror="this.src='https://ivancww.github.io/CIApp/icon-192.png';">
+          <div class="entry-content">
+            <div class="entry-header" style="color:#c2410c;">🛡️ ${isCiFirst ? '你最關注：生活與收入防線' : '另外，你剛才亦提到……'}</div>
+            <div class="entry-desc">${matchedReview.ciIntro}</div>
+            <div class="entry-action-btn" style="color:#ea580c;">了解生活保障 (治療之外，生活呢？) →</div>
+          </div>
+        </a>`;
+
+      var entryBox = document.getElementById('p5-dual-entry-box');
+      if (entryBox) {
+        if (isCiFirst) {
+          entryBox.innerHTML = ciCardHtml + medCardHtml;
+        } else {
+          entryBox.innerHTML = medCardHtml + ciCardHtml;
+        }
+      }
     }
 
     // ======================== 1:1 粉紅虛線後台鏡像系統 ========================
@@ -1296,7 +1281,7 @@
       renderAdminPagesMirror();
     };
 
-    // 05 總結文案庫後台鏡像
+    // 總結文案庫後台鏡像 (完全對應 Google Sheet「總結文案庫」)
     function renderAdminReviewMirror() {
       var box = document.getElementById('adminReviewMirror');
       box.innerHTML = '';
@@ -1307,27 +1292,27 @@
         box.innerHTML += `
           <div class="card" style="display:block; margin-bottom:12px; box-shadow:none; border:1px solid #cbd5e1; padding:14px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <strong style="color:var(--primary); font-size:13px;">【${rv.role === 'adult' ? '成人' : '兒童'}】 模式: ${rv.mode}</strong>
+              <strong style="color:var(--primary); font-size:13px;">【${rv.role === 'adult' ? '成人' : '兒童'}】 模式: ${rv.mode} (#${rv.reviewId})</strong>
               <button type="button" onclick="deleteAdminReviewTpl(${idx})" style="background:#fee2e2; color:#dc2626; border:none; border-radius:4px; padding:2px 6px; font-size:11px; cursor:pointer;">刪除</button>
             </div>
             <div style="margin-bottom:6px;">
-              <label style="font-size:11px; color:#666;">第一部分標題：</label>
+              <label style="font-size:11px; color:#666;">第一部分標題 (part1Title)：</label>
               <div class="editable-mirror" contenteditable="true" data-adm-rv-p1title="${idx}" style="font-size:13px; font-weight:bold;">${rv.part1Title}</div>
             </div>
             <div style="margin-bottom:6px;">
-              <label style="font-size:11px; color:#666;">第一部分說明：</label>
+              <label style="font-size:11px; color:#666;">第一部分說明 (part1Desc)：</label>
               <div class="editable-mirror" contenteditable="true" data-adm-rv-p1desc="${idx}" style="font-size:12px; color:#475569;">${rv.part1Desc}</div>
             </div>
             <div style="margin-bottom:6px;">
-              <label style="font-size:11px; color:#666;">第三部分核心 Review (金句)：</label>
+              <label style="font-size:11px; color:#666;">第二部分核心 Review 金句 (part3Review)：</label>
               <div class="editable-mirror" contenteditable="true" data-adm-rv-p3quote="${idx}" style="font-size:13px; color:#1e3a8a; font-weight:bold;">${rv.part3Review}</div>
             </div>
             <div style="margin-bottom:6px;">
-              <label style="font-size:11px; color:#666;">醫療入口導流文案 (medIntro)：</label>
+              <label style="font-size:11px; color:#666;">醫療入口說明 (medIntro)：</label>
               <div class="editable-mirror" contenteditable="true" data-adm-rv-medintro="${idx}" style="font-size:12px;">${rv.medIntro}</div>
             </div>
             <div>
-              <label style="font-size:11px; color:#666;">生活/照護入口導流文案 (ciIntro)：</label>
+              <label style="font-size:11px; color:#666;">生活/危疾入口說明 (ciIntro)：</label>
               <div class="editable-mirror" contenteditable="true" data-adm-rv-ciintro="${idx}" style="font-size:12px;">${rv.ciIntro}</div>
             </div>
           </div>`;
@@ -1437,7 +1422,7 @@
         }
       });
 
-      // 收集 05 總結文案
+      // 收集總結文案庫
       document.querySelectorAll('[data-adm-rv-p1title]').forEach((el, idx) => {
         if (db.reviews[idx]) {
           db.reviews[idx].part1Title = el.innerText.trim();
@@ -1464,9 +1449,9 @@
       })
       .then(res => res.json())
       .then(res => {
-        alert("✅ Google Sheet 雙向同步成功！版本號：" + (db.config["資料版本"] || "1.3.0"));
+        alert("✅ Google Sheet 雙向同步成功！版本號：" + (db.config["資料版本"] || "1.3.1"));
         localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(db));
-        document.getElementById('appVersion').innerText = 'v' + (db.config["資料版本"] || "1.3.0");
+        document.getElementById('appVersion').innerText = 'v' + (db.config["資料版本"] || "1.3.1");
         closeAdminPanel();
         renderApp();
       })
@@ -1568,7 +1553,7 @@
       if (cached) {
         try {
           db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.3.0');
+          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.3.1');
           renderApp();
         } catch(err) { console.error(err); }
       }
@@ -1578,7 +1563,7 @@
           if (remote && remote.status === 'success') {
             db = remote;
             localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.3.0');
+            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.3.1');
             renderApp();
             if (syncDot) syncDot.style.background = '#22c55e';
           }
