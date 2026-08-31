@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Protection Planner v1.2.7</title>
+  <title>Health Protection Planner v1.2.8 | AVA 專屬</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HealthPlan">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&display=swap');
     :root {
       --primary: #1e3a8a;
       --primary-light: #eff6ff;
@@ -32,7 +33,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Microsoft JhengHei", sans-serif;
+      font-family: 'Noto Sans HK', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
     body {
@@ -426,66 +427,77 @@
       background: #22c55e;
       margin-right: 6px;
     }
-    /* 管理員後台 Modal */
+
+    /* 1:1 粉紅虛線後台鏡像系統 */
     #adminModal {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.75);
       z-index: 9999;
       justify-content: center;
       align-items: center;
-      padding: 16px;
+      padding: 12px;
     }
     .admin-card {
-      background: #ffffff;
+      background: #eef2f5;
       width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
+      max-width: 860px;
+      max-height: 94vh;
       border-radius: 16px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     .admin-header {
-      padding: 16px 20px;
-      background: #0f172a;
+      padding: 14px 20px;
+      background: #1e3a8a;
       color: #ffffff;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .admin-body {
-      padding: 20px;
-      overflow-y: auto;
+    .admin-nav-tabs {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .admin-section-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--primary);
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 4px;
-      margin-top: 8px;
-    }
-    .admin-item {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
       gap: 6px;
+      padding: 10px 16px;
+      background: #e2e8f0;
+      overflow-x: auto;
+      flex-shrink: 0;
     }
-    .admin-footer {
-      padding: 14px 20px;
-      background: #f1f5f9;
-      display: flex;
-      gap: 10px;
-      border-top: 1px solid #e2e8f0;
+    .admin-nav-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      color: #475569;
+      white-space: nowrap;
+    }
+    .admin-nav-btn.active {
+      background: #1e3a8a;
+      color: #fff;
+    }
+    .admin-body {
+      padding: 18px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .editable-mirror {
+      border: 2px dashed #f472b6 !important;
+      background: #fff0f5 !important;
+      border-radius: 8px;
+      padding: 4px 8px;
+      outline: none;
+      transition: 0.2s;
+    }
+    .editable-mirror:focus {
+      border-color: #db2777 !important;
+      background: #ffffff !important;
+      box-shadow: 0 0 0 2px rgba(219, 39, 119, 0.2);
     }
     @media (max-width: 520px) {
       .input-grid, .stat-display, .grid-2x2, .solution-group, .role-grid {
@@ -500,11 +512,11 @@
     <div style="display:flex; align-items:center;">
       <span class="sync-status-dot" id="syncDot" title="Google Sheet 同步中"></span>
       <span>HEALTH PROTECTION PLANNER</span>
-      <span class="version-tag" id="appVersion" title="點擊開啟後台">v1.2.7</span>
+      <span class="version-tag" id="appVersion" onclick="openAdminPanel()" title="點擊開啟後台鏡像系統">v1.2.8</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <span class="role-badge" id="topRoleBadge">👨‍👩‍👧 成人模式</span>
-      <button type="button" id="btnOpenAdmin" style="background:none; border:none; font-size:16px; cursor:pointer;" title="後台管理">⚙️</button>
+      <button type="button" onclick="openAdminPanel()" style="background:none; border:none; font-size:16px; cursor:pointer;" title="後台管理">⚙️</button>
       <span id="pageCounter">00 / 05</span>
     </div>
   </div>
@@ -513,17 +525,45 @@
   <main id="dynamicAppContainer"></main>
 </div>
 
-<!-- 後台管理彈窗 (免密碼直接開啟) -->
+<!-- ==================== 1:1 粉紅虛線鏡像後台管理系統 ==================== -->
 <div id="adminModal">
   <div class="admin-card">
     <div class="admin-header">
-      <span style="font-weight:800; font-size:16px;">🛠️ 後台管理系統 (Google Sheet 雙向同步)</span>
-      <button type="button" id="btnCloseAdmin" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✕</button>
+      <span style="font-weight:800; font-size:15px;">🛠️ AVA 視覺化後台鏡像系統 (粉紅虛線可點擊修改)</span>
+      <button type="button" onclick="closeAdminPanel()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✕</button>
     </div>
-    <div class="admin-body" id="adminBodyContent"></div>
-    <div class="admin-footer">
-      <button type="button" class="btn btn-secondary" id="btnCancelAdmin" style="flex:1;">取消</button>
-      <button type="button" class="btn btn-primary" id="btnSaveAdmin" style="flex:2;">💾 儲存並同步至 Google Sheet</button>
+    <div class="admin-nav-tabs">
+      <button class="admin-nav-btn active" onclick="switchAdminTab('pPages')">頁面流程與題目鏡像</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('pRules')">規則設定庫 (05總結)</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('pConfig')">系統設定 & 參數範本</button>
+    </div>
+    <div class="admin-body">
+      <!-- 1. 頁面流程與選項鏡像 -->
+      <div id="admTab-pPages" class="adm-section-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <strong style="color:var(--primary); font-size:14px;">📄 頁面題目與選項管理（與 Google Sheet 同步）</strong>
+          <button type="button" onclick="addAdminNewPage()" style="background:var(--primary); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">+ 新增頁面</button>
+        </div>
+        <div id="adminPagesMirror"></div>
+      </div>
+      
+      <!-- 2. 規則設定庫鏡像 -->
+      <div id="admTab-pRules" class="adm-section-panel" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <strong style="color:var(--primary); font-size:14px;">⚙️ 雙戰線匹配規則（對應「規則設定」工作表）</strong>
+          <button type="button" onclick="addAdminRule()" style="background:var(--primary); color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer;">+ 新增規則</button>
+        </div>
+        <div id="adminRulesMirror"></div>
+      </div>
+
+      <!-- 3. 系統設定 -->
+      <div id="admTab-pConfig" class="adm-section-panel" style="display:none;">
+        <div class="card" style="display:block; margin:0;" id="adminConfigList"></div>
+      </div>
+    </div>
+    <div style="padding:14px 20px; background:#f1f5f9; display:flex; gap:10px; border-top:1px solid #e2e8f0;">
+      <button type="button" class="btn btn-secondary" onclick="closeAdminPanel()" style="flex:1;">取消</button>
+      <button type="button" class="btn btn-primary" id="btnSaveAdmin" onclick="saveAdminPanel()" style="flex:2;">💾 儲存並同步至 Google Sheet</button>
     </div>
   </div>
 </div>
@@ -531,6 +571,7 @@
 <script>
   (function() {
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwiLwLfOhe_R0rwDpkhSPJz_qBdOchyEozTIg7biPfJxkZudjdUgPKjeQEGYSnuiTHG/exec";
+    
     var state = {
       targetRole: 'adult',
       currentStep: 0,
@@ -543,23 +584,95 @@
       losses: [],
       alertMsg: '',
       showAppMode: 'med',
-      medCost: 200000,
+      medCost: 500000,
       companyLimit: 100000,
       companyRate: 80,
       companyPay: 0,
       personalLimit: 100000,
       personalRate: 80,
       personalPay: 80000,
-      finalMedGap: 20000,
+      finalMedGap: 320000,
       ciTotal: 1440000,
-      ciExisting: 500000,
-      ciNetGap: 940000,
+      ciExisting: 300000,
+      ciNetGap: 1140000,
       hasCompanyMed: 'no',
       hasPersonalMed: 'yes',
       ciMonthly: 40000,
       ciMonths: 36
     };
-    var db = null;
+
+    var DEFAULT_FALLBACK_DB = {
+      version: "1.2.8",
+      config: {
+        "資料版本": "1.2.8",
+        "醫療App網址": "https://ivancww.github.io/medicalclaims",
+        "醫療App參數": "role={role}&cost={medCost}&hasCompany={hasCompany}&companyLimit={companyLimit}&companyRate={companyRate}&hasPersonal={hasPersonal}&personalLimit={personalLimit}&personalRate={personalRate}&losses={losses}&alertMsg={alertMsg}&focus={focus}",
+        "危疾App網址": "https://ivancww.github.io/CIApp",
+        "危疾App參數": "role={role}&expense={ciMonthly}&months={ciMonths}&existing={existingCI}&losses={losses}&alertMsg={alertMsg}&focus={focus}",
+        "成人預設醫療費": 500000,
+        "成人預設每月開支": 40000,
+        "成人預設休養月數": 36,
+        "成人預設現有危疾": 300000,
+        "兒童預設醫療費": 200000,
+        "兒童預設每月照護": 30000,
+        "兒童預設陪伴月數": 24,
+        "兒童預設現有危疾": 0
+      },
+      pages: [
+        { pageId: "p1_adult", role: "adult", stepOrder: 1, tagName: "01 ｜ 關注/重視", title: "如果健康突然出現變化，你最希望守住…？", subtitle: "", pageType: "單選題", quoteAlert: "" },
+        { pageId: "p2_adult", role: "adult", stepOrder: 2, tagName: "02 ｜ 想像一下", title: "如果有一天需要接受治療，你希望自己點樣作選擇？", subtitle: "🚨 一場大病往往引發兩條戰線：第一條醫療費用；第二條收入中斷。", pageType: "單選題", quoteAlert: "" },
+        { pageId: "p3_adult", role: "adult", stepOrder: 3, tagName: "03 ｜ 已有防線檢視", title: "你已有的保障，可以幫你走幾遠？", subtitle: "確認現有防線，精算潛在缺口：", pageType: "試算頁", quoteAlert: "" },
+        { pageId: "p4_adult", role: "adult", stepOrder: 4, tagName: "04 ｜ 失去的代價", title: "如果保障未夠，你最希望避免邊一樣被打亂？", subtitle: "可選擇多於一項", pageType: "多選題", quoteAlert: "" },
+        { pageId: "p5_adult", role: "adult", stepOrder: 5, tagName: "05 ｜ 專屬方案方向", title: "你剛剛告訴我的…", subtitle: "點擊下方直接進入專屬工具填補防線：", pageType: "總結頁", quoteAlert: "" },
+        
+        { pageId: "p1_child", role: "child", stepOrder: 1, tagName: "01 ｜ 關注/重視", title: "如果孩子健康突然出現狀況，你最希望得到甚麼？", subtitle: "為孩子建立最堅實的醫療與陪伴後盾：", pageType: "單選題", quoteAlert: "" },
+        { pageId: "p2_child", role: "child", stepOrder: 2, tagName: "02 ｜ 想像一下", title: "如果孩子需要接受長期治療，你最擔憂甚麼？", subtitle: "🚨 孩子抗病往往牽動兩條戰線：第一條私家醫療費；第二條父母停工照護基金。", pageType: "單選題", quoteAlert: "" },
+        { pageId: "p3_child", role: "child", stepOrder: 3, tagName: "03 ｜ 建立守護防線", title: "由零建立孩子與家庭的專屬安全網", subtitle: "預算前線最佳醫療及父母專職陪伴基金：", pageType: "試算頁", quoteAlert: "" },
+        { pageId: "p4_child", role: "child", stepOrder: 4, tagName: "04 ｜ 失去的代價", title: "如果孩子面臨健康挑戰，你最不想妥協/中斷甚麼？", subtitle: "可選擇多於一項", pageType: "多選題", quoteAlert: "" },
+        { pageId: "p5_child", role: "child", stepOrder: 5, tagName: "05 ｜ 專屬方案方向", title: "根據你的重視與關注，得出以下總結及缺口", subtitle: "點擊下方直接進入專屬工具填補防線：", pageType: "總結頁", quoteAlert: "" }
+      ],
+      options: [
+        { pageId: "p1_adult", optionKey: "medical", icon: "🏥", title: "醫療選擇", desc: "有須要時，可以選擇最好的醫生與技術。", bindVar: "step1Focus", order: 1 },
+        { pageId: "p1_adult", optionKey: "ci", icon: "🛡️", title: "家庭生活", desc: "即使面對重大疾病，生活水平與家庭責任不變。", bindVar: "step1Focus", order: 2 },
+        { pageId: "p1_adult", optionKey: "both", icon: "🏥 + 🛡️", title: "兩方面都重要", desc: "既想保留醫療選擇，也想維持家庭生活水準。", bindVar: "step1Focus", order: 3 },
+        { pageId: "p2_adult", optionKey: "medical", icon: "🏥", title: "先以治療須要作決定", desc: "以醫生建議及最佳治療效果為首要考量。", bindVar: "step2Scenario", order: 1 },
+        { pageId: "p2_adult", optionKey: "ci", icon: "🛡️", title: "先考慮自己可以負擔的費用", desc: "先了解自己須要自付的醫療費及生活影響。", bindVar: "step2Scenario", order: 2 },
+        { pageId: "p2_adult", optionKey: "both", icon: "⚖️", title: "兩方面都要兼顧", desc: "希望有醫療選擇，同時不想動用個人積蓄。", bindVar: "step2Scenario", order: 3 },
+        { pageId: "p4_adult", optionKey: "loss_home", icon: "🏠", title: "家庭生活質素", desc: "避免生活質素下降或動用日常儲蓄。", bindVar: "lossItem", order: 1 },
+        { pageId: "p4_adult", optionKey: "loss_saving", icon: "💰", title: "積蓄與資產", desc: "辛苦累積的積蓄被龐大醫療與生活開支消耗。", bindVar: "lossItem", order: 2 },
+        { pageId: "p4_adult", optionKey: "loss_edu", icon: "🎓", title: "子女教育規劃", desc: "子女的教育基金被迫中斷或延後。", bindVar: "lossItem", order: 3 },
+        { pageId: "p4_adult", optionKey: "loss_retire", icon: "🌅", title: "退休儲備進度", desc: "既定的平穩退休計劃被大病中斷。", bindVar: "lossItem", order: 4 },
+        
+        { pageId: "p1_child", optionKey: "medical", icon: "🏥", title: "把握黃金治療期", desc: "不必因醫療費限制，直接選用最好的醫療資源。", bindVar: "step1Focus", order: 1 },
+        { pageId: "p1_child", optionKey: "ci", icon: "🧸", title: "父母能全天候停工陪伴", desc: "有充足應急現金流，讓父母專心全職照顧孩子。", bindVar: "step1Focus", order: 2 },
+        { pageId: "p1_child", optionKey: "both", icon: "🏥 + 🧸", title: "頂尖醫療選擇 + 全職陪伴", desc: "既要孩子得到最佳治療，也要父母安心全天候陪伴。", bindVar: "step1Focus", order: 3 },
+        { pageId: "p2_child", optionKey: "medical", icon: "🏥", title: "「想用最新標靶/免疫治療，但擔心自費藥物昂貴」", desc: "擔心前線醫療開支超出預算。", bindVar: "step2Scenario", order: 1 },
+        { pageId: "p2_child", optionKey: "ci", icon: "🧸", title: "「想全職陪伴照顧，但擔心停工家庭收入中斷」", desc: "擔心父母停工帶來的家庭現金流壓力。", bindVar: "step2Scenario", order: 2 },
+        { pageId: "p2_child", optionKey: "both", icon: "⚖️", title: "「兩樣都極度擔憂」", desc: "絕不希望因醫療開支或收入中斷而影響孩子。", bindVar: "step2Scenario", order: 3 },
+        { pageId: "p4_child", optionKey: "loss_treat", icon: "✨", title: "黃金治療機會", desc: "孩子獲得最佳醫療資源的黃金治療期。", bindVar: "lossItem", order: 1 },
+        { pageId: "p4_child", optionKey: "loss_accompany", icon: "🧸", title: "全天候陪伴", desc: "父母全職陪伴照料孩子的安心感。", bindVar: "lossItem", order: 2 },
+        { pageId: "p4_child", optionKey: "loss_edu", icon: "🎓", title: "子女教育基金", desc: "預先為孩子準備的成長與教育基金儲備。", bindVar: "lossItem", order: 3 },
+        { pageId: "p4_child", optionKey: "loss_asset", icon: "🛡️", title: "家庭穩健資產", desc: "家庭原本建立的生活基石與緊急儲備。", bindVar: "lossItem", order: 4 }
+      ],
+      rules: [
+        { ruleId: "R1", step1: "medical", step2: "medical", checkLine: "醫保", alertMsg: "注意：你已聚焦前線醫療，建議確保醫療防線全數賠償。", showApp: "med" },
+        { ruleId: "R2", step1: "medical", step2: "ci", checkLine: "危疾", alertMsg: "注意：你首要重視醫療，但情境擔憂生活現金流，建議同步檢視危疾規劃。", showApp: "ci" },
+        { ruleId: "R3", step1: "ci", step2: "medical", checkLine: "醫保", alertMsg: "注意：你首要重視家庭生活，但情境擔憂醫療負擔，建議同步填補醫保自付缺口。", showApp: "med" },
+        { ruleId: "R4", step1: "ci", step2: "ci", checkLine: "危疾", alertMsg: "注意：你已聚焦後方生活防線，建議建立充足危疾停工生活儲備。", showApp: "ci" },
+        { ruleId: "R5", step1: "both", step2: "medical", checkLine: "醫保", alertMsg: "注意：你清楚兩線並重，優先處理前線醫療費用直擊。", showApp: "med" },
+        { ruleId: "R6", step1: "both", step2: "ci", checkLine: "危疾", alertMsg: "注意：你清楚兩線並重，優先確保後方停工生活儲備。", showApp: "ci" },
+        { ruleId: "R7", step1: "any", step2: "both", checkLine: "醫保+危疾", alertMsg: "（無須提醒，雙線並重）", showApp: "both" },
+        { ruleId: "CR1", step1: "medical", step2: "medical", checkLine: "兒童醫保", alertMsg: "注意：你已為孩子鎖定黃金醫療，建議配置 0 自付額全數索償醫保。", showApp: "med" },
+        { ruleId: "CR2", step1: "medical", step2: "ci", checkLine: "父母照護", alertMsg: "注意：你首要重視孩子醫療，同時需防範父母停工照護期間的家庭開支真空。", showApp: "ci" },
+        { ruleId: "CR3", step1: "ci", step2: "medical", checkLine: "兒童醫保", alertMsg: "注意：你首要重視父母全職陪伴，但切忌忽略私家高額自費藥物的直接衝擊。", showApp: "med" },
+        { ruleId: "CR4", step1: "ci", step2: "ci", checkLine: "父母照護", alertMsg: "注意：你已聚焦父母陪伴照護，建議預算足夠 2-3 年停工陪伴照護基金。", showApp: "ci" },
+        { ruleId: "CR5", step1: "both", step2: "medical", checkLine: "兒童醫保", alertMsg: "注意：你清楚頂尖醫療與陪伴同樣重要，優先為孩子填補前線自費醫療差額。", showApp: "med" },
+        { ruleId: "CR6", step1: "both", step2: "ci", checkLine: "父母照護", alertMsg: "注意：你清楚頂尖醫療與陪伴同樣重要，優先為父母建立充足停工照護基金。", showApp: "ci" },
+        { ruleId: "CR7", step1: "any", step2: "both", checkLine: "醫保+照護", alertMsg: "（無須提醒，雙線並重）", showApp: "both" }
+      ]
+    };
+
+    var db = DEFAULT_FALLBACK_DB;
 
     function parseNum(val) {
       if (typeof val === 'number') return val;
@@ -589,12 +702,15 @@
       });
     }
 
+    // ======================== 動態頁面渲染引擎 ========================
     function renderApp() {
       if (!db || !db.pages) return;
       var container = document.getElementById('dynamicAppContainer');
       container.innerHTML = '';
-      state.rolePages = db.pages.filter(p => p.role === state.targetRole).sort((a,b) => a.stepOrder - b.stepOrder);
+      
+      state.rolePages = db.pages.filter(p => p.role === state.targetRole).sort((a,b) => Number(a.stepOrder) - Number(b.stepOrder));
       state.totalSteps = state.rolePages.length;
+      
       var track = document.getElementById('mainProgressTrack');
       track.innerHTML = '';
       for (var s = 0; s <= state.totalSteps; s++) {
@@ -604,7 +720,7 @@
         track.appendChild(stepDiv);
       }
 
-      // STEP 0
+      // STEP 0 入口卡片
       var p0Html = `
         <section class="card ${state.currentStep === 0 ? 'active' : ''}" id="stepCard_0">
           <span class="tag">健康守護 ｜ 入口</span>
@@ -630,11 +746,12 @@
         </section>`;
       container.insertAdjacentHTML('beforeend', p0Html);
 
-      // STEP 1 - 5
+      // STEP 1 - N 動態卡片
       state.rolePages.forEach(function(page, idx) {
         var stepNum = idx + 1;
-        var opts = db.options.filter(o => o.pageId === page.pageId).sort((a,b) => a.order - b.order);
+        var opts = (db.options || []).filter(o => o.pageId === page.pageId).sort((a,b) => Number(a.order) - Number(b.order));
         var pageHtml = '';
+
         if (page.pageType === '單選題') {
           var optButtons = '';
           opts.forEach(function(o) {
@@ -657,14 +774,13 @@
             </section>`;
         } else if (page.pageType === '試算頁') {
           var isChild = state.targetRole === 'child';
-          var defaultMed = isChild ? (db.config["兒童預設醫療費"] || 200000) : (db.config["成人預設醫療費"] || 200000);
+          var defaultMed = isChild ? (db.config["兒童預設醫療費"] || 200000) : (db.config["成人預設醫療費"] || 500000);
           var defaultMonthly = isChild ? (db.config["兒童預設每月照護"] || 30000) : (db.config["成人預設每月開支"] || 40000);
           var defaultMonths = isChild ? (db.config["兒童預設陪伴月數"] || 24) : (db.config["成人預設休養月數"] || 36);
-          var defaultCiExist = isChild ? (db.config["兒童預設現有危疾"] || 0) : (db.config["成人預設現有危疾"] || 500000);
+          var defaultCiExist = isChild ? (db.config["兒童預設現有危疾"] || 0) : (db.config["成人預設現有危疾"] || 300000);
           
           state.ciMonthly = defaultMonthly;
           state.ciMonths = defaultMonths;
-
           pageHtml = `
             <section class="card ${state.currentStep === stepNum ? 'active' : ''}" id="stepCard_${stepNum}">
               <span class="tag">${page.tagName}</span>
@@ -736,7 +852,7 @@
                 <div class="stat-display" style="grid-template-columns: 1fr; margin-top: 14px;">
                   <div class="stat-box" style="border: 2px solid var(--danger);">
                     <div class="stat-label" style="font-weight:700; color:var(--danger);">醫療總自付缺口金額</div>
-                    <div class="stat-value highlight" style="font-size:22px;" id="totalMedGapDisplay">HK$ 120,000</div>
+                    <div class="stat-value highlight" style="font-size:22px;" id="totalMedGapDisplay">HK$ 320,000</div>
                   </div>
                 </div>
               </div>
@@ -814,6 +930,7 @@
         }
         container.insertAdjacentHTML('beforeend', pageHtml);
       });
+
       initFormatCurrency();
       updatePageCounter();
       calculate();
@@ -855,6 +972,7 @@
       if (!costElem) return;
       var cost = parseNum(costElem.value);
       state.medCost = cost;
+      
       var compSelect = document.getElementById('hasCompanyMed');
       var hasComp = compSelect ? compSelect.value === 'yes' : false;
       state.hasCompanyMed = hasComp ? 'yes' : 'no';
@@ -870,6 +988,7 @@
         state.companyRate = 0;
       }
       state.companyPay = compPay;
+      
       var remainingAfterComp = Math.max(0, cost - compPay);
       var persSelect = document.getElementById('hasPersonalMed');
       var hasPers = persSelect ? persSelect.value === 'yes' : true;
@@ -886,14 +1005,17 @@
         state.personalRate = 0;
       }
       state.personalPay = persPay;
+      
       var finalGap = Math.max(0, cost - compPay - persPay);
       state.finalMedGap = finalGap;
+      
       var cpElem = document.getElementById('companyPayDisplay');
       if (cpElem) cpElem.innerText = 'HK$ ' + Math.round(compPay).toLocaleString();
       var ppElem = document.getElementById('personalPayDisplay');
       if (ppElem) ppElem.innerText = 'HK$ ' + Math.round(persPay).toLocaleString();
       var tmgElem = document.getElementById('totalMedGapDisplay');
       if (tmgElem) tmgElem.innerText = 'HK$ ' + Math.round(finalGap).toLocaleString();
+      
       var ciM = parseNum(document.getElementById('ciMonthly').value);
       var ciMonths = parseNum(document.getElementById('ciMonths').value);
       var ciExist = parseNum(document.getElementById('existingCI').value);
@@ -902,12 +1024,14 @@
       state.ciTotal = ciM * ciMonths;
       state.ciExisting = ciExist;
       state.ciNetGap = Math.max(0, state.ciTotal - ciExist);
+      
       var ciTotElem = document.getElementById('ciTotalDisplay');
       if (ciTotElem) ciTotElem.innerText = 'HK$ ' + state.ciTotal.toLocaleString();
       var ciGapElem = document.getElementById('ciNetGapDisplay');
       if (ciGapElem) ciGapElem.innerText = 'HK$ ' + state.ciNetGap.toLocaleString();
     }
 
+    // ======================== 05 頁總結運算與動態 URL 生成 ========================
     function updateSummary() {
       var thoughtBox = document.getElementById('thoughtBox');
       var frontlineBox = document.getElementById('frontlineBox');
@@ -915,12 +1039,13 @@
       var solutionDesc = document.getElementById('solutionDesc');
       var solutionButtonsArea = document.getElementById('solutionButtonsArea');
       if (!thoughtBox || !frontlineBox || !block) return;
+      
       var defaultLoss = state.targetRole === 'child' ? '全天候全職陪伴、頂級私家醫療選擇' : '家庭生活質素、積蓄與資產';
       var lossText = state.losses.length > 0 ? state.losses.join('、') : defaultLoss;
       var curStep1 = cleanKey(state.step1Focus);
       var curStep2 = cleanKey(state.step2Scenario);
 
-      // 1. 客戶心中想法
+      // 1. 客戶心中想法 (Thought Box)
       var thoughtHtml = '';
       if (curStep1 === 'both') {
         if (curStep2 === 'medical') {
@@ -962,7 +1087,7 @@
       }
       thoughtBox.innerHTML = thoughtHtml;
 
-      // 2. 兩條戰線
+      // 2. 兩條戰線 (Frontline Box)
       var frontlineHtml = '';
       var ciLineName = state.targetRole === 'child' ? '第二條戰線（父母停工照護）' : '第二條戰線（收入中斷）';
       var medText = (curStep2 === 'medical' || curStep2 === 'both') ? state.step2RawText : '即時高昂治療費用';
@@ -975,7 +1100,7 @@
         </div>`;
       frontlineBox.innerHTML = frontlineHtml;
 
-      // 3. 雙向規則匹配
+      // 3. 雙向規則設定庫匹配
       state.alertMsg = '';
       state.showAppMode = 'med';
       if (db.rules && db.rules.length > 0) {
@@ -992,7 +1117,7 @@
         }
       }
 
-      // 4. 動態組合第三個框內容
+      // 4. 動態組合數據缺口總結
       var ciLabelText = state.targetRole === 'child' ? '父母停工照護及康復缺口：' : '收入失去／中斷生活儲備缺口：';
       var summaryHtml = `
         <div style="margin-bottom:8px;">🎯 <strong>最希望得到／守護：</strong>${state.step1RawText}</div>
@@ -1007,51 +1132,48 @@
         summaryHtml += `<div class="conflict-alert">⚠️ ${state.alertMsg}</div>`;
       }
       block.innerHTML = summaryHtml;
-      
-      // 5. 動態生成乾淨 URL (精準帶入 role, type, months, losses)
-      function buildCleanUrl(baseUrl, paramsObj) {
+
+      // 5. 讀取 Google Sheet 參數範本並動態替換變數
+      function compileUrl(baseUrl, paramTemplate, valMap) {
         var cleanBase = (baseUrl || '').trim().replace(/\/+$/, '');
-        var queryParts = [];
-        for (var k in paramsObj) {
-          if (paramsObj[k] !== undefined && paramsObj[k] !== null && paramsObj[k] !== '') {
-            queryParts.push(encodeURIComponent(k) + '=' + encodeURIComponent(paramsObj[k]));
-          }
+        var queryString = paramTemplate || '';
+        for (var k in valMap) {
+          var val = valMap[k];
+          queryString = queryString.replace(new RegExp('\\{' + k + '\\}', 'g'), encodeURIComponent(val !== undefined && val !== null ? val : ''));
         }
-        return cleanBase + (queryParts.length > 0 ? '?' + queryParts.join('&') : '');
+        return cleanBase + (queryString ? '?' + queryString : '');
       }
 
-      var medBase = db.config["醫療App網址"] || "https://ivancww.github.io/medicalclaims";
-      var ciBase = db.config["危疾App網址"] || "https://ivancww.github.io/CIApp";
-      
-      var medParams = {
+      var valDict = {
         role: state.targetRole,
         type: state.targetRole,
         cost: state.medCost,
+        medCost: state.medCost,
         hasCompany: state.hasCompanyMed,
         companyLimit: state.companyLimit,
         companyRate: state.companyRate,
         hasPersonal: state.hasPersonalMed,
         personalLimit: state.personalLimit,
         personalRate: state.personalRate,
-        losses: state.losses.length > 0 ? state.losses.join(',') : (state.targetRole === 'child' ? '全天候全職陪伴,頂級私家醫療選擇' : '家庭生活質素,積蓄與資產'),
-        alertMsg: state.alertMsg,
-        focus: state.step1Focus || ''
-      };
-      
-      var ciParams = {
-        role: state.targetRole,
-        type: state.targetRole,
         expense: state.ciMonthly,
+        ciMonthly: state.ciMonthly,
         months: state.ciMonths,
+        ciMonths: state.ciMonths,
         existing: state.ciExisting,
+        existingCI: state.ciExisting,
         losses: state.losses.length > 0 ? state.losses.join(',') : (state.targetRole === 'child' ? '全天候全職陪伴,頂級私家醫療選擇' : '家庭生活質素,積蓄與資產'),
         alertMsg: state.alertMsg,
         focus: state.step1Focus || ''
       };
-      
-      var medUrl = buildCleanUrl(medBase, medParams);
-      var ciUrl = buildCleanUrl(ciBase, ciParams);
-      
+
+      var medBase = (db.config && db.config["醫療App網址"]) || "https://ivancww.github.io/medicalclaims";
+      var medParamsTpl = (db.config && db.config["醫療App參數"]) || "role={role}&cost={medCost}&hasCompany={hasCompany}&companyLimit={companyLimit}&companyRate={companyRate}&hasPersonal={hasPersonal}&personalLimit={personalLimit}&personalRate={personalRate}&losses={losses}&alertMsg={alertMsg}&focus={focus}";
+      var ciBase = (db.config && db.config["危疾App網址"]) || "https://ivancww.github.io/CIApp";
+      var ciParamsTpl = (db.config && db.config["危疾App參數"]) || "role={role}&expense={ciMonthly}&months={ciMonths}&existing={existingCI}&losses={losses}&alertMsg={alertMsg}&focus={focus}";
+
+      var medUrl = compileUrl(medBase, medParamsTpl, valDict);
+      var ciUrl = compileUrl(ciBase, ciParamsTpl, valDict);
+
       var btnMedical = `
         <a href="${medUrl}" target="_blank" rel="noopener noreferrer" class="solution-btn med">
           <img src="https://ivancww.github.io/medicalclaims/icon-192.png" alt="Medical App Logo" onerror="this.style.display='none'">
@@ -1084,83 +1206,223 @@
       }
     }
 
-    // ======================== 後台管理 ========================
-    function openAdminPanel() {
-      var modal = document.getElementById('adminModal');
-      var body = document.getElementById('adminBodyContent');
-      body.innerHTML = '';
-      var secConfig = document.createElement('div');
-      secConfig.innerHTML = `<div class="admin-section-title">⚙️ 系統設定 & 預設金額</div>`;
-      for (const [k, v] of Object.entries(db.config)) {
-        secConfig.innerHTML += `
-          <div class="admin-item">
-            <label>${k}</label>
-            <input type="text" data-admin-config="${k}" value="${v}">
-          </div>`;
-      }
-      body.appendChild(secConfig);
-      var secPages = document.createElement('div');
-      secPages.innerHTML = `<div class="admin-section-title">📄 題目與副標題文案</div>`;
-      db.pages.forEach((p, idx) => {
-        secPages.innerHTML += `
-          <div class="admin-item">
-            <label>【${p.role === 'adult' ? '成人' : '兒童'} - 第 ${p.stepOrder} 步】${p.tagName}</label>
-            <input type="text" placeholder="主標題" data-admin-page-title="${idx}" value="${p.title}">
-            <textarea placeholder="副標題" data-admin-page-sub="${idx}">${p.subtitle}</textarea>
-          </div>`;
-      });
-      body.appendChild(secPages);
-      var secOpts = document.createElement('div');
-      secOpts.innerHTML = `<div class="admin-section-title">🔘 選項按鈕文案</div>`;
-      db.options.forEach((o, idx) => {
-        secOpts.innerHTML += `
-          <div class="admin-item">
-            <label>${o.pageId} (${o.optionKey})</label>
-            <div style="display:flex; gap:6px;">
-              <input type="text" style="width:50px;" placeholder="Icon" data-admin-opt-icon="${idx}" value="${o.icon}">
-              <input type="text" style="flex:1;" placeholder="選項標題" data-admin-opt-title="${idx}" value="${o.title}">
+    // ======================== 1:1 粉紅虛線後台鏡像系統 ========================
+    window.openAdminPanel = function() {
+      renderAdminPagesMirror();
+      renderAdminRulesMirror();
+      renderAdminConfigList();
+      document.getElementById('adminModal').style.display = 'flex';
+    };
+
+    window.closeAdminPanel = function() {
+      document.getElementById('adminModal').style.display = 'none';
+    };
+
+    window.switchAdminTab = function(tabId) {
+      document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.adm-section-panel').forEach(p => p.style.display = 'none');
+      event.target.classList.add('active');
+      document.getElementById('admTab-' + tabId).style.display = 'block';
+    };
+
+    function renderAdminPagesMirror() {
+      var box = document.getElementById('adminPagesMirror');
+      box.innerHTML = '';
+      
+      (db.pages || []).forEach((p, pIdx) => {
+        var opts = (db.options || []).filter(o => o.pageId === p.pageId).sort((a,b) => Number(a.order) - Number(b.order));
+        var optsHtml = '';
+        opts.forEach((o) => {
+          var globalOptIdx = db.options.indexOf(o);
+          optsHtml += `
+            <div style="background:#fff; border:1px dashed var(--pink-border); border-radius:8px; padding:8px; margin-top:6px;">
+              <div style="display:flex; gap:6px; align-items:center;">
+                <span class="editable-mirror" contenteditable="true" data-adm-opt-icon="${globalOptIdx}" style="width:36px; text-align:center;">${o.icon || '📌'}</span>
+                <div class="editable-mirror" contenteditable="true" data-adm-opt-title="${globalOptIdx}" style="flex:1; font-weight:bold;">${o.title}</div>
+                <button type="button" onclick="deleteAdminOption(${globalOptIdx})" style="background:#fee2e2; color:#dc2626; border:none; border-radius:4px; padding:2px 6px; font-size:11px; cursor:pointer;">✕</button>
+              </div>
+              <div class="editable-mirror" contenteditable="true" data-adm-opt-desc="${globalOptIdx}" style="font-size:12px; color:#666; margin-top:4px;">${o.desc || ''}</div>
+            </div>`;
+        });
+        
+        box.innerHTML += `
+          <div class="card" style="display:block; margin-bottom:14px; box-shadow:none; border:1px solid #cbd5e1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="display:flex; gap:6px; align-items:center;">
+                <span class="tag" style="margin:0;">【${p.role === 'adult' ? '成人' : '兒童'}】</span>
+                <span class="editable-mirror" contenteditable="true" data-adm-page-tag="${pIdx}" style="font-weight:bold; font-size:12px;">${p.tagName}</span>
+                <span style="font-size:11px; color:#64748b;">(類型: ${p.pageType})</span>
+              </div>
+              <button type="button" onclick="deleteAdminPage(${pIdx})" style="background:#fee2e2; color:#dc2626; border:1px solid #ef4444; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">🗑️ 刪除頁面</button>
             </div>
-            <input type="text" placeholder="選項說明" data-admin-opt-desc="${idx}" value="${o.desc}">
+            <div style="margin-bottom:6px;">
+              <label style="font-size:11px; font-weight:bold; color:#666;">頁面大標題：</label>
+              <div class="editable-mirror" contenteditable="true" data-adm-page-title="${pIdx}" style="font-size:16px; font-weight:800;">${p.title}</div>
+            </div>
+            <div style="margin-bottom:8px;">
+              <label style="font-size:11px; font-weight:bold; color:#666;">副標題指引 / 警示文案：</label>
+              <div class="editable-mirror" contenteditable="true" data-adm-page-sub="${pIdx}" style="font-size:13px; color:#666;">${p.subtitle || ''}</div>
+            </div>
+            ${p.pageType.includes('題') ? `
+            <div style="margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:12px; color:var(--primary);">🔘 選項內容 (點擊粉紅框修改)：</strong>
+                <button type="button" onclick="addAdminOption('${p.pageId}')" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer;">+ 新增選項</button>
+              </div>
+              ${optsHtml}
+            </div>` : ''}
           </div>`;
       });
-      body.appendChild(secOpts);
-      modal.style.display = 'flex';
     }
 
-    function saveAdminPanel() {
-      if (!confirm("確定儲存並將最新文案同步至 Google Sheet？")) return;
+    window.addAdminNewPage = function() {
+      if (!db.pages) db.pages = [];
+      var count = db.pages.filter(p => p.role === state.targetRole).length + 1;
+      var newPageId = "p_custom_" + Date.now().toString().slice(-4);
+      db.pages.push({
+        pageId: newPageId,
+        role: state.targetRole,
+        stepOrder: count,
+        tagName: `0${count} ｜ 自訂步驟`,
+        title: "請在此輸入新頁面標題",
+        subtitle: "請在此輸入副標題或指引說明",
+        pageType: "單選題",
+        quoteAlert: ""
+      });
+      renderAdminPagesMirror();
+    };
+
+    window.deleteAdminPage = function(idx) {
+      if (confirm("確定刪除此頁面？對應選項亦會同步移除。")) {
+        var targetPageId = db.pages[idx].pageId;
+        db.pages.splice(idx, 1);
+        db.options = (db.options || []).filter(o => o.pageId !== targetPageId);
+        renderAdminPagesMirror();
+      }
+    };
+
+    window.addAdminOption = function(pageId) {
+      if (!db.options) db.options = [];
+      var count = db.options.filter(o => o.pageId === pageId).length + 1;
+      db.options.push({
+        pageId: pageId,
+        optionKey: "opt_" + count,
+        icon: "📌",
+        title: "新選項標題",
+        desc: "新選項說明文字",
+        bindVar: "stepChoice",
+        order: count
+      });
+      renderAdminPagesMirror();
+    };
+
+    window.deleteAdminOption = function(idx) {
+      db.options.splice(idx, 1);
+      renderAdminPagesMirror();
+    };
+
+    function renderAdminRulesMirror() {
+      var box = document.getElementById('adminRulesMirror');
+      box.innerHTML = '';
+      (db.rules || []).forEach((r, idx) => {
+        box.innerHTML += `
+          <div class="card" style="display:block; margin-bottom:10px; box-shadow:none; border:1px solid #cbd5e1; padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <strong style="color:var(--primary); font-size:13px;">#${r.ruleId} 【01關注: ${r.step1} ➔ 02情境: ${r.step2}】</strong>
+              <button type="button" onclick="deleteAdminRule(${idx})" style="background:#fee2e2; color:#dc2626; border:none; border-radius:4px; padding:2px 6px; font-size:11px; cursor:pointer;">刪除</button>
+            </div>
+            <div style="margin-bottom:6px;">
+              <label style="font-size:11px; color:#666;">05注意提醒字眼 (Conflict Alert)：</label>
+              <div class="editable-mirror" contenteditable="true" data-adm-rule-alert="${idx}" style="font-size:12px; color:#b91c1c;">${r.alertMsg || ''}</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <label style="font-size:11px; color:#666;">05顯示App按鈕：</label>
+              <select data-adm-rule-app="${idx}" style="width:120px; padding:4px 8px; font-size:12px;">
+                <option value="med" ${r.showApp==='med'?'selected':''}>醫療 App (med)</option>
+                <option value="ci" ${r.showApp==='ci'?'selected':''}>危疾 App (ci)</option>
+                <option value="both" ${r.showApp==='both'?'selected':''}>兩者同時顯示 (both)</option>
+              </select>
+              <span style="font-size:11px; color:#64748b;">檢視防線: ${r.checkLine || ''}</span>
+            </div>
+          </div>`;
+      });
+    }
+
+    window.addAdminRule = function() {
+      if (!db.rules) db.rules = [];
+      var count = db.rules.length + 1;
+      db.rules.push({
+        ruleId: "R" + count,
+        step1: "both",
+        step2: "both",
+        checkLine: "自訂檢視",
+        alertMsg: "請輸入提醒字眼",
+        showApp: "both"
+      });
+      renderAdminRulesMirror();
+    };
+
+    window.deleteAdminRule = function(idx) {
+      db.rules.splice(idx, 1);
+      renderAdminRulesMirror();
+    };
+
+    function renderAdminConfigList() {
+      var box = document.getElementById('adminConfigList');
+      var cfg = (db.config && Object.keys(db.config).length > 0) ? db.config : DEFAULT_FALLBACK_DB.config;
+      db.config = cfg;
+      
+      box.innerHTML = '<strong style="color:var(--primary); font-size:14px;">⚙️ 系統設定 & 參數範本（對應「系統設定」工作表）</strong><div style="margin-top:10px;">';
+      for (const [k, v] of Object.entries(cfg)) {
+        box.innerHTML += `
+          <div style="margin-bottom:8px;">
+            <label style="font-size:12px; font-weight:bold; color:#475569;">${k}</label>
+            <input type="text" data-adm-config="${k}" value="${v}">
+          </div>`;
+      }
+      box.innerHTML += '</div>';
+    }
+
+    window.saveAdminPanel = function() {
       var btnSave = document.getElementById('btnSaveAdmin');
       btnSave.innerText = "⏳ 正在同步至 Google Sheet...";
       btnSave.disabled = true;
-      document.querySelectorAll('[data-admin-config]').forEach(inp => {
-        db.config[inp.dataset.adminConfig] = inp.value;
+
+      // 收集頁面資料
+      document.querySelectorAll('[data-adm-page-title]').forEach(el => {
+        var idx = Number(el.dataset.admPageTitle);
+        if (db.pages[idx]) db.pages[idx].title = el.innerText.trim();
       });
-      var curVer = String(db.config["資料版本"] || "1.2.6").split('.');
-      if (curVer.length === 3) {
-        curVer[2] = Number(curVer[2]) + 1;
-        db.config["資料版本"] = curVer.join('.');
-      } else {
-        db.config["資料版本"] = "1.2.7";
-      }
-      document.querySelectorAll('[data-admin-page-title]').forEach(inp => {
-        var idx = Number(inp.dataset.adminPageTitle);
-        db.pages[idx].title = inp.value;
+      document.querySelectorAll('[data-adm-page-sub]').forEach(el => {
+        var idx = Number(el.dataset.admPageSub);
+        if (db.pages[idx]) db.pages[idx].subtitle = el.innerText.trim();
       });
-      document.querySelectorAll('[data-admin-page-sub]').forEach(inp => {
-        var idx = Number(inp.dataset.adminPageSub);
-        db.pages[idx].subtitle = inp.value;
+      document.querySelectorAll('[data-adm-page-tag]').forEach(el => {
+        var idx = Number(el.dataset.admPageTag);
+        if (db.pages[idx]) db.pages[idx].tagName = el.innerText.trim();
       });
-      document.querySelectorAll('[data-admin-opt-title]').forEach(inp => {
-        var idx = Number(inp.dataset.adminOptTitle);
-        db.options[idx].title = inp.value;
+
+      // 收集選項
+      document.querySelectorAll('[data-adm-opt-title]').forEach(el => {
+        var idx = Number(el.dataset.admOptTitle);
+        if (db.options[idx]) {
+          db.options[idx].title = el.innerText.trim();
+          db.options[idx].icon = document.querySelector(`[data-adm-opt-icon="${idx}"]`).innerText.trim();
+          db.options[idx].desc = document.querySelector(`[data-adm-opt-desc="${idx}"]`).innerText.trim();
+        }
       });
-      document.querySelectorAll('[data-admin-opt-icon]').forEach(inp => {
-        var idx = Number(inp.dataset.adminOptIcon);
-        db.options[idx].icon = inp.value;
+
+      // 收集規則
+      document.querySelectorAll('[data-adm-rule-alert]').forEach((el, idx) => {
+        if (db.rules[idx]) {
+          db.rules[idx].alertMsg = el.innerText.trim();
+          db.rules[idx].showApp = document.querySelector(`[data-adm-rule-app="${idx}"]`).value;
+        }
       });
-      document.querySelectorAll('[data-admin-opt-desc]').forEach(inp => {
-        var idx = Number(inp.dataset.adminOptDesc);
-        db.options[idx].desc = inp.value;
+
+      // 收集系統設定
+      document.querySelectorAll('[data-adm-config]').forEach(inp => {
+        db.config[inp.dataset.admConfig] = inp.value;
       });
 
       fetch(GAS_API_URL, {
@@ -1169,28 +1431,22 @@
       })
       .then(res => res.json())
       .then(res => {
-        alert("✅ 成功同步至 Google Sheet！最新版本號：" + db.config["資料版本"]);
+        alert("✅ Google Sheet 雙向同步成功！版本號：" + (db.config["資料版本"] || "1.2.8"));
         localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(db));
-        document.getElementById('appVersion').innerText = 'v' + db.config["資料版本"];
-        document.getElementById('adminModal').style.display = 'none';
+        document.getElementById('appVersion').innerText = 'v' + (db.config["資料版本"] || "1.2.8");
+        closeAdminPanel();
         renderApp();
       })
       .catch(err => {
-        alert("❌ 同步失敗，請檢查 GAS 部署權限：" + err);
+        alert("❌ 同步失敗，請檢查 GAS 部署：" + err);
       })
       .finally(() => {
         btnSave.innerText = "💾 儲存並同步至 Google Sheet";
         btnSave.disabled = false;
       });
-    }
+    };
 
-    // ======================== 全域事件 ========================
-    document.getElementById('btnOpenAdmin').addEventListener('click', openAdminPanel);
-    document.getElementById('appVersion').addEventListener('click', openAdminPanel);
-    document.getElementById('btnCloseAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
-    document.getElementById('btnCancelAdmin').addEventListener('click', () => document.getElementById('adminModal').style.display = 'none');
-    document.getElementById('btnSaveAdmin').addEventListener('click', saveAdminPanel);
-
+    // ======================== 全域事件綁定 ========================
     document.addEventListener('click', function(e) {
       var roleCard = e.target.closest('[data-role-btn]');
       if (roleCard) {
@@ -1200,7 +1456,7 @@
         renderApp();
         return;
       }
-
+      
       var choiceBtn = e.target.closest('.choice-btn');
       if (choiceBtn && choiceBtn.dataset.stepChoice) {
         var pCard = choiceBtn.closest('.card');
@@ -1218,7 +1474,7 @@
         }
         return;
       }
-
+      
       var gridBtn = e.target.closest('.grid-btn');
       if (gridBtn) {
         gridBtn.classList.toggle('selected');
@@ -1228,7 +1484,7 @@
         });
         return;
       }
-
+      
       var navBtn = e.target.closest('[data-nav-action]');
       if (navBtn) {
         var action = navBtn.dataset.navAction;
@@ -1285,18 +1541,17 @@
       if (cached) {
         try {
           db = JSON.parse(cached);
-          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.7');
+          document.getElementById('appVersion').innerText = 'v' + (db.version || '1.2.8');
           renderApp();
         } catch(err) { console.error(err); }
       }
-
       fetch(GAS_API_URL)
         .then(res => res.json())
         .then(remote => {
           if (remote && remote.status === 'success') {
             db = remote;
             localStorage.setItem('HEALTH_PLAN_DB_V10', JSON.stringify(remote));
-            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.7');
+            document.getElementById('appVersion').innerText = 'v' + (remote.version || '1.2.8');
             renderApp();
             if (syncDot) syncDot.style.background = '#22c55e';
           }
